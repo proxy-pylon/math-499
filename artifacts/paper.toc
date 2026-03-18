@@ -1,0 +1,23 @@
+\contentsline {section}{\tocsection {}{1}{Introduction}}{2}{section.1}%
+\contentsline {subsection}{\tocsubsection {}{1.1}{History}}{2}{subsection.1.1}%
+\contentsline {section}{\tocsection {}{2}{Preliminaries}}{2}{section.2}%
+\contentsline {subsection}{\tocsubsection {}{2.1}{Classical bits}}{2}{subsection.2.1}%
+\contentsline {subsection}{\tocsubsection {}{2.2}{Classical logical gates}}{3}{subsection.2.2}%
+\contentsline {subsection}{\tocsubsection {}{2.3}{Classical circuits}}{3}{subsection.2.3}%
+\contentsline {subsection}{\tocsubsection {}{2.4}{Qubits}}{4}{subsection.2.4}%
+\contentsline {subsection}{\tocsubsection {}{2.5}{Quantum gates}}{5}{subsection.2.5}%
+\contentsline {subsection}{\tocsubsection {}{2.6}{Quantum circuit}}{7}{subsection.2.6}%
+\contentsline {subsection}{\tocsubsection {}{2.7}{Bell states}}{8}{subsection.2.7}%
+\contentsline {subsection}{\tocsubsection {}{2.8}{Pauli matrices}}{9}{subsection.2.8}%
+\contentsline {subsection}{\tocsubsection {}{2.9}{VQLS}}{10}{subsection.2.9}%
+\contentsline {subsection}{\tocsubsection {}{2.10}{ODE type}}{11}{subsection.2.10}%
+\contentsline {subsection}{\tocsubsection {}{2.11}{Spectral methods}}{12}{subsection.2.11}%
+\contentsline {subsection}{\tocsubsection {}{2.12}{Simulation vs Quantum}}{12}{subsection.2.12}%
+\contentsline {section}{\tocsection {}{3}{Problem statement}}{13}{section.3}%
+\contentsline {section}{\tocsection {}{4}{Results}}{13}{section.4}%
+\contentsline {subsection}{\tocsubsection {}{4.1}{Experiment 1}}{14}{subsection.4.1}%
+\contentsline {subsection}{\tocsubsection {}{4.2}{Experiment 2}}{14}{subsection.4.2}%
+\contentsline {subsection}{\tocsubsection {}{4.3}{Experiment 3}}{14}{subsection.4.3}%
+\contentsline {section}{\tocsection {}{5}{Conclusion}}{14}{section.5}%
+\contentsline {section}{\tocsection {}{6}{Appendix}}{14}{section.6}%
+\contentsline {section}{\tocsection {}{}{References}}{14}{section*.2}%
