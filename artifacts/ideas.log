@@ -1,0 +1,511 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.7.30)  8 APR 2026 08:56
+entering extended mode
+ restricted \write18 enabled.
+ file:line:error style messages enabled.
+ %&-line parsing enabled.
+**"d:/Courses/math 499/artifacts/ideas"
+(d:/Courses/math 499/artifacts/ideas.tex
+LaTeX2e <2025-06-01> patch level 1
+L3 programming layer <2025-07-19>
+(d:/Programming/texlive/2025/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2025/01/22 v1.4n Standard LaTeX document class
+(d:/Programming/texlive/2025/texmf-dist/tex/latex/base/size10.clo
+File: size10.clo 2025/01/22 v1.4n Standard LaTeX file (size option)
+)
+\c@part=\count275
+\c@section=\count276
+\c@subsection=\count277
+\c@subsubsection=\count278
+\c@paragraph=\count279
+\c@subparagraph=\count280
+\c@figure=\count281
+\c@table=\count282
+\abovecaptionskip=\skip49
+\belowcaptionskip=\skip50
+\bibindent=\dimen148
+) (d:/Programming/texlive/2025/texmf-dist/tex/latex/graphics/graphicx.sty
+Package: graphicx 2024/12/31 v1.2e Enhanced LaTeX Graphics (DPC,SPQR)
+ (d:/Programming/texlive/2025/texmf-dist/tex/latex/graphics/keyval.sty
+Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
+\KV@toks@=\toks17
+) (d:/Programming/texlive/2025/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2024/08/06 v1.4g Standard LaTeX Graphics (DPC,SPQR)
+ (d:/Programming/texlive/2025/texmf-dist/tex/latex/graphics/trig.sty
+Package: trig 2023/12/02 v1.11 sin cos tan (DPC)
+) (d:/Programming/texlive/2025/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 106.
+ (d:/Programming/texlive/2025/texmf-dist/tex/latex/graphics-def/pdftex.def
+File: pdftex.def 2024/04/13 v1.2c Graphics/color driver for pdftex
+))
+\Gin@req@height=\dimen149
+\Gin@req@width=\dimen150
+) (d:/Programming/texlive/2025/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
+File: l3backend-pdftex.def 2025-06-09 L3 backend support: PDF output (pdfTeX)
+\l__color_backend_stack_int=\count283
+) (./ideas.aux)
+\openout1 = `ideas.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+ (d:/Programming/texlive/2025/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count284
+\scratchdimen=\dimen151
+\scratchbox=\box53
+\nofMPsegments=\count285
+\nofMParguments=\count286
+\everyMPshowfont=\toks18
+\MPscratchCnt=\count287
+\MPscratchDim=\dimen152
+\MPnumerator=\count288
+\makeMPintoPDFobject=\count289
+\everyMPtoPDFconversion=\toks19
+) (d:/Programming/texlive/2025/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 485.
+ (d:/Programming/texlive/2025/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
+))
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 13.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 13.
+
+d:/Courses/math 499/artifacts/ideas.tex:13: Undefined control sequence.
+l.13 $$c_{PQ} = \tfrac
+                      {1}{4}\operatorname{Tr}(M \cdot P{\otimes}Q)$$
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+d:/Courses/math 499/artifacts/ideas.tex:13: Undefined control sequence.
+l.13 $$c_{PQ} = \tfrac{1}{4}\operatorname
+                                         {Tr}(M \cdot P{\otimes}Q)$$
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+d:/Courses/math 499/artifacts/ideas.tex:18: Undefined control sequence.
+l.18 $$\operatorname
+                    {Tr}(M \cdot P{\otimes}Q) = \operatorname{Tr}((M \cdot P...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+d:/Courses/math 499/artifacts/ideas.tex:18: Undefined control sequence.
+l.18 ...e{Tr}(M \cdot P{\otimes}Q) = \operatorname
+                                                  {Tr}((M \cdot P{\otimes}Q)...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+d:/Courses/math 499/artifacts/ideas.tex:18: Undefined control sequence.
+l.18 ...((M \cdot P{\otimes}Q)^T) = -\operatorname
+                                                  {Tr}(M \cdot P{\otimes}Q) ...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+d:/Courses/math 499/artifacts/ideas.tex:28: Undefined control sequence.
+l.28 ...21}$	$C_{20}+C_{21}+C_{22} = C_{10}+\tfrac
+                                                  {2}{3}C_{11}$
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+d:/Courses/math 499/artifacts/ideas.tex:29: Undefined control sequence.
+l.29 ..._{30}+C_{31}+C_{32}+C_{33} = C_{10}+\tfrac
+                                                  {4}{3}C_{11}$
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+Overfull \hbox (10.21114pt too wide) detected at line 36
+\OML/cmm/m/it/10 C[] \OMS/cmsy/m/n/10 ^^@ \OML/cmm/m/it/10 C[] \OT1/cmr/m/n/10 + \OML/cmm/m/it/10 C[] \OMS/cmsy/m/n/10 ^^@ \OML/cmm/m/it/10 C[] \OT1/cmr/m/n/10 = 0\OML/cmm/m/it/10 ;  C[] \OT1/cmr/m/n/10 + \OML/cmm/m/it/10 C[] \OT1/cmr/m/n/10 + \OML/cmm/m/it/10 C[] \OT1/cmr/m/n/10 + \OML/cmm/m/it/10 C[] \OT1/cmr/m/n/10 = 0; \OMS/cmsy/m/n/10 )\OT1/cmr/m/n/10 ; \OML/cmm/m/it/10 C[] \OT1/cmr/m/n/10 = \OMS/cmsy/m/n/10 ^^@\OML/cmm/m/it/10 C[]; \OT1/cmr/m/n/10 ; \OML/cmm/m/it/10 C[] \OT1/cmr/m/n/10 = \OMS/cmsy/m/n/10 ^^@\OML/cmm/m/it/10 C[]
+ []
+
+
+d:/Courses/math 499/artifacts/ideas.tex:38: LaTeX Error: Environment smallmatrix undefined.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.38 ...ower-triangular $\bigl[\begin{smallmatrix}
+                                                  A & 0 \ B & C\end{smallmat...
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+d:/Courses/math 499/artifacts/ideas.tex:38: Misplaced alignment tab character &.
+l.38 ...r-triangular $\bigl[\begin{smallmatrix}A &
+                                                   0 \ B & C\end{smallmatrix...
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+d:/Courses/math 499/artifacts/ideas.tex:38: Misplaced alignment tab character &.
+l.38 ...ular $\bigl[\begin{smallmatrix}A & 0 \ B &
+                                                   C\end{smallmatrix}\bigr]$...
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+
+d:/Courses/math 499/artifacts/ideas.tex:38: LaTeX Error: \begin{document} ended by \end{smallmatrix}.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.38 ...smallmatrix}A & 0 \ B & C\end{smallmatrix}
+                                                  \bigr]$, concentrating the...
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+d:/Courses/math 499/artifacts/ideas.tex:44: Misplaced alignment tab character &.
+l.44 $c_{IX}=0 ;&
+                 ; c_{ZX}=0$	$M_{01}=-C_{00}$ and $M_{23}=-M_{32}$
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+d:/Courses/math 499/artifacts/ideas.tex:45: Misplaced alignment tab character &.
+l.45 $c_{XI}=0 ;&
+                 ; c_{XZ}=0$	$M_{02}=-C_{00}$ and $M_{13}=-M_{31}$
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+d:/Courses/math 499/artifacts/ideas.tex:46: Misplaced alignment tab character &.
+l.46 $c_{XX}=0 ;&
+                 ; c_{YY}=0$	$M_{03}=-C_{00}$ and $M_{12}=-M_{21}$
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+d:/Courses/math 499/artifacts/ideas.tex:52: Undefined control sequence.
+l.52 ...in_{C} \sum_{P,Q} |c_{PQ}(C)|, \quad \text
+                                                  {s.t. } \det M(C) \neq 0$$
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+
+[1
+
+{d:/Programming/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{d:/Programming/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
+d:/Courses/math 499/artifacts/ideas.tex:57: Undefined control sequence.
+l.57 ... evaluation points ${-1, 1}$ and ${-\tfrac
+                                                  {1}{3}, \tfrac{1}{3}}$ are...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+d:/Courses/math 499/artifacts/ideas.tex:57: Undefined control sequence.
+l.57 ...ints ${-1, 1}$ and ${-\tfrac{1}{3}, \tfrac
+                                                  {1}{3}}$ are symmetric abo...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+d:/Courses/math 499/artifacts/ideas.tex:61: Undefined control sequence.
+l.61 ...ns rows 0 and 1 together look like $[\text
+                                                  {row}_s, \text{row}_d]$ wh...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+d:/Courses/math 499/artifacts/ideas.tex:61: Undefined control sequence.
+l.61 ...1 together look like $[\text{row}_s, \text
+                                                  {row}_d]$ where row$_s$ is...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+d:/Courses/math 499/artifacts/ideas.tex:61: LaTeX Error: Unicode character ⊗ (U+2297)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.61 ...he row space that maps cleanly to the Z⊗
+                                                  * sector of the Pauli deco...
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+d:/Courses/math 499/artifacts/ideas.tex:61: LaTeX Error: Unicode character ⊗ (U+2297)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.61 ...but the boundary rows contribute only Z⊗
+                                                  -type and I⊗-type string...
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+d:/Courses/math 499/artifacts/ideas.tex:61: LaTeX Error: Unicode character ⊗ (U+2297)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.61 ...ry rows contribute only Z⊗-type and I⊗
+                                                  -type strings — cutting ...
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+
+[2]
+
+d:/Courses/math 499/artifacts/ideas.tex:112: LaTeX Error: Environment smallmatrix undefined.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.112 ..._2$ with $A_2 = \bigl[\begin{smallmatrix}
+                                                  2&2\2&4\end{smallmatrix}\b...
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+d:/Courses/math 499/artifacts/ideas.tex:112: Misplaced alignment tab character &.
+l.112 ...$ with $A_2 = \bigl[\begin{smallmatrix}2&
+                                                  2\2&4\end{smallmatrix}\big...
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+d:/Courses/math 499/artifacts/ideas.tex:112: Undefined control sequence.
+l.112 ...ith $A_2 = \bigl[\begin{smallmatrix}2&2\2
+                                                  &4\end{smallmatrix}\bigr]$...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+d:/Courses/math 499/artifacts/ideas.tex:112: Misplaced alignment tab character &.
+l.112 ...th $A_2 = \bigl[\begin{smallmatrix}2&2\2&
+                                                  4\end{smallmatrix}\bigr]$ ...
+I can't figure out why you would want to use a tab mark
+here. If you just want an ampersand, the remedy is
+simple: Just type `I\&' now. But if some right brace
+up above has ended a previous alignment prematurely,
+you're probably due for more error messages, and you
+might try typing `S' now just to see what is salvageable.
+
+
+d:/Courses/math 499/artifacts/ideas.tex:112: LaTeX Error: \begin{document} ended by \end{smallmatrix}.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.112 ...egin{smallmatrix}2&2\2&4\end{smallmatrix}
+                                                  \bigr]$ (same structure as...
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+
+
+[3]
+d:/Courses/math 499/artifacts/ideas.tex:149: Undefined control sequence.
+l.149 $$C_\text
+               {new} = C \cdot B^T, \quad (SE)\text{new} = SE \cdot B^T, \qu...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+d:/Courses/math 499/artifacts/ideas.tex:149: Undefined control sequence.
+l.149 ...\text{new} = C \cdot B^T, \quad (SE)\text
+                                                  {new} = SE \cdot B^T, \qua...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+d:/Courses/math 499/artifacts/ideas.tex:149: Undefined control sequence.
+l.149 ...text{new} = SE \cdot B^T, \quad (BE)\text
+                                                  {new} = BE \cdot B^T$$
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+d:/Courses/math 499/artifacts/ideas.tex:153: Undefined control sequence.
+l.153 $$A_\text
+               {new} = (C \cdot B^T) \otimes (SE \cdot B^T) + (SE \cdot B^T)...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+d:/Courses/math 499/artifacts/ideas.tex:158: Missing $ inserted.
+<inserted text> 
+                $
+l.158 Step 7–8 in laplace_
+                            2d_tensor.py applies the Experiment 1 basis, whi...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+LaTeX Warning: Command \textemdash invalid in math mode on input line 158.
+
+d:/Courses/math 499/artifacts/ideas.tex:158: Missing $ inserted.
+<inserted text> 
+                $
+l.158 ... global optimum for 2D — you'd want $B^
+                                                  T$ that minimizes the Paul...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (679.01094pt too wide) in paragraph at lines 157--159
+[]\OT1/cmr/m/n/10 What the cur-rent code al-ready shows Step 7{8 in laplace$[]\OML/cmm/m/it/10 d[]ensor:pyappliestheExperiment\OT1/cmr/m/n/10 1\OML/cmm/m/it/10 basis; whichwasoptimizedtominimizePaulicountof$\OT1/cmr/m/n/10 C$\OML/cmm/m/it/10 alone:Thisreducesthe\OT1/cmr/m/n/10 2\OML/cmm/m/it/10 DPaulicount; butit[]snottheglobaloptimumfor\OT1/cmr/m/n/10 2\OML/cmm/m/it/10 D\OMS/cmsy/m/n/10 j\OML/cmm/m/it/10 you[]dwant$\OT1/cmr/m/n/10 B$[]$
+ []
+
+d:/Courses/math 499/artifacts/ideas.tex:163: You can't use `macro parameter character #' in display math mode.
+l.163 $$\min_B #
+                {\text{nonzero Pauli strings of } A_\text{new}(B)} \quad \te...
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+d:/Courses/math 499/artifacts/ideas.tex:163: Undefined control sequence.
+l.163 $$\min_B #{\text
+                      {nonzero Pauli strings of } A_\text{new}(B)} \quad \te...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+d:/Courses/math 499/artifacts/ideas.tex:163: Undefined control sequence.
+l.163 ...{\text{nonzero Pauli strings of } A_\text
+                                                  {new}(B)} \quad \text{s.t....
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+d:/Courses/math 499/artifacts/ideas.tex:163: Undefined control sequence.
+l.163 ...strings of } A_\text{new}(B)} \quad \text
+                                                  {s.t.} \det(C \cdot B^T) \...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+d:/Courses/math 499/artifacts/ideas.tex:165: Undefined control sequence.
+l.165 Since each Pauli coefficient of $A_\text
+                                              {new}$ is a polynomial functio...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+
+[4]
+
+[5] (./ideas.aux)
+ ***********
+LaTeX2e <2025-06-01> patch level 1
+L3 programming layer <2025-07-19>
+ ***********
+ ) 
+Here is how much of TeX's memory you used:
+ 1273 strings out of 467815
+ 20875 string characters out of 5430158
+ 440008 words of memory out of 5000000
+ 29945 multiletter control sequences out of 15000+600000
+ 627160 words of font info for 41 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 57i,6n,65p,559b,116s stack positions out of 10000i,1000n,20000p,200000b,200000s
+<d:/Programming/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><d:/Programming/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><d:/Programming/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb><d:/Programming/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb><d:/Programming/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb><d:/Programming/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb><d:/Programming/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb><d:/Programming/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb><d:/Programming/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb><d:/Programming/texlive/2025/texmf-dist/fonts/type1/public/cm-super/sfrm1000.pfb>
+Output written on ideas.pdf (5 pages, 127930 bytes).
+PDF statistics:
+ 71 PDF objects out of 1000 (max. 8388607)
+ 43 compressed objects within 1 object stream
+ 0 named destinations out of 1000 (max. 500000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+

@@ -100,24 +100,95 @@ The determinant of this matrix is given by:
 
 % in general, is the determinant always a product of the leading coefficients?
 
-Decomposing the matrix into the sum pauli strings, we find that the number of required pauli strings varies with the choice of coefficients $C_{ij}$.
-One can see that the minimum number of pauli strings needed is 3, for example with the choice:
+\subsection*{4. Minimizing the Number of Pauli Strings}
+
+The Pauli decomposition of any $4 \times 4$ matrix $A$ is unique: the coefficient of each
+two-qubit Pauli string $P_k$ is determined by
 \begin{equation}
-    -3 II - 2 IX + IZ
+    c_k = \frac{\mathrm{Tr}(P_k A)}{4}.
+\end{equation}
+There are 16 such strings in total.  The goal is to choose the basis coefficients $C_{ij}$
+so that as many $c_k$ as possible are exactly zero.  Three structural conditions, imposed
+in sequence, achieve this.
+
+\paragraph{Step 1: Enforce block-diagonal structure.}
+The upper-right $2\times 2$ block of the general Case B matrix has entries
+\begin{equation}
+    \begin{pmatrix} C_{20} & C_{30} \\ C_{20}+C_{21}+C_{22} & C_{30}+C_{31}+C_{32}+C_{33} \end{pmatrix}.
+\end{equation}
+This block is nonzero for generic choices of $C_{ij}$ (e.g.\ $C_{30}=1$ immediately
+places a nonzero entry at position $(0,3)$).  To force it to zero we impose:
+\begin{equation}
+    C_{20} = 0, \qquad C_{30} = 0, \qquad C_{21} + C_{22} = 0, \qquad C_{31}+C_{32}+C_{33} = 0.
+\end{equation}
+The lower-left block is already zero by construction (the collocation rows evaluate
+$\phi_0''$ and $\phi_1''$, which vanish at interior points).  With the above constraints,
+the matrix takes the block form
+\begin{equation}
+    A = \begin{pmatrix} B_1 & 0 \\ 0 & B_2 \end{pmatrix}, \qquad
+    B_1 = \begin{bmatrix} C_{00} & C_{10} \\ C_{00} & C_{11}+C_{10} \end{bmatrix}, \quad
+    B_2 = \begin{bmatrix} 2C_{22} & 2C_{33}+2C_{32} \\ 2C_{22} & 4C_{33}+2C_{32} \end{bmatrix}.
+\end{equation}
+Any block-diagonal matrix can be written as
+$A = I \otimes \tfrac{B_1+B_2}{2} + Z \otimes \tfrac{B_1-B_2}{2}$,
+so only Pauli strings with $I$ or $Z$ on the first qubit can appear.
+This eliminates eight strings ($XI, XX, XY, XZ, YI, YX, YY, YZ$), leaving at most 8.
+
+\paragraph{Step 2: Equal blocks (eliminates the $Z\otimes\cdot$ strings).}
+If $B_1 = B_2$ then the term $Z \otimes \tfrac{B_1-B_2}{2}$ vanishes entirely, removing
+$ZI, ZX, ZY, ZZ$.  This leaves at most 4 strings: $II, IX, IY, IZ$.
+Equating $B_1 = B_2$ entry by entry gives:
+\begin{equation}
+    C_{00} = 2C_{22}, \qquad
+    C_{10} = 2C_{33}+2C_{32}, \qquad
+    C_{11}+C_{10} = 4C_{33}+2C_{32}.
 \end{equation}
 
-Which gives the Coefficients
+\paragraph{Step 3: Repeated first-column entry (eliminates $IY$).}
+For a $2\times 2$ matrix $B = \bigl[\begin{smallmatrix}a&b\\a&c\end{smallmatrix}\bigr]$,
+the coefficient of $Y$ in its single-qubit Pauli decomposition is
+$\mathrm{Tr}(Y B)/2 = i(b-a)/2$.
+This vanishes if and only if $b = a$, i.e.\ the off-diagonal entry equals the top-left entry.
+For $B_1$ this requires $C_{10} = C_{00}$, and since Step~2 already forces $B_1 = B_2$,
+the same condition holds for $B_2$ automatically.
+After imposing $C_{10} = C_{00}$, only $II$, $IX$, and $IZ$ remain.
 
-The matrix decomposition into Pauli strings reveals interesting structure. For the choice of coefficients:
+\paragraph{Why three is the minimum.}
+With the block $B = \bigl[\begin{smallmatrix}a&a\\a&c\end{smallmatrix}\bigr]$, the three
+surviving coefficients are
+\begin{equation}
+    \alpha = \frac{a+c}{2}, \qquad \beta = a, \qquad \gamma = \frac{a-c}{2},
+\end{equation}
+so that $A = \alpha\, II + \beta\, IX + \gamma\, IZ$ (before normalisation).
+Eliminating $IZ$ would require $a = c$, making $\det(B) = a(c-a) = 0$; the system
+would have no unique solution.  Hence three Pauli strings is the minimum compatible
+with a non-singular collocation matrix.
+
+\subsection*{5. Resulting Decomposition}
+
+Applying all three conditions with the concrete choice
 \begin{align*}
-    C_{00} &= 2, \\ 
-    C_{10} &= 2, \quad C_{11} = 2 \\
-    C_{20} &= 0, \quad C_{21} = -1, \quad C_{22} = 1 \\
+    C_{00} &= 2, \\
+    C_{10} &= 2, \quad C_{11} = 2, \\
+    C_{20} &= 0, \quad C_{21} = -1, \quad C_{22} = 1, \\
     C_{30} &= 0, \quad C_{31} = -1, \quad C_{32} = 0, \quad C_{33} = 1
 \end{align*}
-
-
-Which is a 81\% reduction from the 16 pauli strings needed in Case A.
+gives $a = 2$, $c = 4$, and the matrix
+\begin{equation}
+A =
+\begin{bmatrix}
+2 & 2 & 0 & 0 \\
+2 & 4 & 0 & 0 \\
+0 & 0 & 2 & 2 \\
+0 & 0 & 2 & 4
+\end{bmatrix}.
+\end{equation}
+After normalising by $\|A\| = \sqrt{6a^2+2c^2} = 2\sqrt{14}$, the Pauli decomposition is
+\begin{equation}
+    \frac{A}{\|A\|} = \frac{3}{2\sqrt{14}}\,II + \frac{1}{\sqrt{14}}\,IX - \frac{1}{2\sqrt{14}}\,IZ
+    \;\approx\; 0.4009\,II + 0.2673\,IX - 0.1336\,IZ,
+\end{equation}
+which is an 81\% reduction from the 16 Pauli strings required in Case A.
 
 
 

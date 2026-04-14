@@ -1,0 +1,189 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\title{Renderer}
+\author{adilet akimshe}
+\date{April 2026}
+
+\begin{document}
+
+Background: Pauli string count for 4×4 real matrices
+A general 4×4 real matrix has up to 16 Pauli terms: 10 even-Y strings (II, IX, IZ, XI, XX, XZ, YY, ZI, ZX, ZZ) with real coefficients, and 6 odd-Y strings (IY, YI, XY, YX, ZY, YZ) with purely imaginary coefficients. The key formula is:
+
+$$c_{PQ} = \tfrac{1}{4}\operatorname{Tr}(M \cdot P{\otimes}Q)$$
+
+Idea 1 — Symmetrize M (most powerful single lever)
+For any antisymmetric Pauli string $P{\otimes}Q$ (i.e., those with exactly one $Y$, which are the 6 odd-Y strings), a symmetric matrix $M = M^T$ satisfies
+
+$$\operatorname{Tr}(M \cdot P{\otimes}Q) = \operatorname{Tr}((M \cdot P{\otimes}Q)^T) = -\operatorname{Tr}(M \cdot P{\otimes}Q) = 0.$$
+
+So a real symmetric matrix uses at most 10 Pauli strings (only even-Y).
+
+The symmetry conditions $M_{ij} = M_{ji}$ translate to 6 constraints on the $C_{kl}$:
+
+condition	equation
+$M_{01}=M_{10}$	$C_{10} - C_{11} = C_{00}$
+$M_{02}=M_{20}$	$C_{20} - C_{21} + C_{22} = C_{00}$
+$M_{03}=M_{30}$	$C_{30} - C_{31} + C_{32} - C_{33} = C_{00}$
+$M_{12}=M_{21}$	$C_{20}+C_{21}+C_{22} = C_{10}+\tfrac{2}{3}C_{11}$
+$M_{13}=M_{31}$	$C_{30}+C_{31}+C_{32}+C_{33} = C_{10}+\tfrac{4}{3}C_{11}$
+$M_{23}=M_{32}$	$L\phi_3 = L\phi_2$
+With monic normalization ($C_{00}=C_{11}=C_{22}=C_{33}=1$) you have exactly 6 free parameters and 6 equations — the system is square. Solve it and check whether the resulting $M$ is invertible.
+
+Idea 2 — Zero the upper-right block (boundary-vanishing $\phi_2, \phi_3$)
+Force $\phi_2(\pm 1) = \phi_3(\pm 1) = 0$. This requires:
+$$C_{20}-C_{21}+C_{22}=0,\quad C_{20}+C_{21}+C_{22}=0 ;\Rightarrow; C_{21}=0,; C_{22}=-C_{20}$$
+$$C_{30}-C_{31}+C_{32}-C_{33}=0,\quad C_{30}+C_{31}+C_{32}+C_{33}=0 ;\Rightarrow; C_{31}=-C_{33},; C_{32}=-C_{30}$$
+
+So $\phi_2 = C_{20}(1-t^2)$ and $\phi_3 = (1-t^2)(C_{30}+C_{33}t)$. The matrix becomes block lower-triangular $\bigl[\begin{smallmatrix}A & 0 \ B & C\end{smallmatrix}\bigr]$, concentrating the Pauli content in identifiable blocks. The upper-right zero block kills the XI, XZ, XX, YY strings that involve off-diagonal cross-block interaction — but it leaves the lower-left block $B$ (which cannot be zero by the document's argument) contributing its own X- and Y-type strings.
+
+Idea 3 — Directly zero 6 specific Pauli traces
+The 6 even-Y strings with X (IX, ZX, XI, XZ, XX, YY) have traces that pair up nicely:
+
+trace pair	vanishes when
+$c_{IX}=0 ;&; c_{ZX}=0$	$M_{01}=-C_{00}$ and $M_{23}=-M_{32}$
+$c_{XI}=0 ;&; c_{XZ}=0$	$M_{02}=-C_{00}$ and $M_{13}=-M_{31}$
+$c_{XX}=0 ;&; c_{YY}=0$	$M_{03}=-C_{00}$ and $M_{12}=-M_{21}$
+Each pair gives 2 equations for free parameters. This is 6 equations in the 6 free $C_{kl}$, and the solution exists. The surviving even-Y strings are only II, IZ, ZI, ZZ — but note the odd-Y strings (capturing the remaining off-diagonal content) are still non-zero. The net count is 4 real + up to 6 imaginary = up to 10 strings, but potentially fewer if the structure forces cancellation.
+
+Idea 4 — Numerical L1 Pauli minimization
+Since the C-parameters enter the Pauli coefficients linearly (each matrix entry is a linear combination of the $C_{kl}$, and the Pauli trace is linear in the matrix entries), every $c_{PQ}$ is a linear function of the $C_{kl}$. The optimization:
+
+$$\min_{C} \sum_{P,Q} |c_{PQ}(C)|, \quad \text{s.t. } \det M(C) \neq 0$$
+
+is a linear program in the $C_{kl}$ after introducing slack variables for the absolute values. L1 minimization automatically promotes sparsity in the Pauli coefficients. This can be solved with standard LP software and will find the globally optimal sparse choice.
+
+Idea 5 — Even/odd parity basis
+Note that the evaluation points ${-1, 1}$ and ${-\tfrac{1}{3}, \tfrac{1}{3}}$ are symmetric about $0$. Choose $\phi_0, \phi_2$ to be even polynomials and $\phi_1, \phi_3$ to be odd polynomials (set $C_{10}=C_{30}=C_{32}=C_{21}=0$). Then for the boundary rows:
+
+Even $\phi_j$: $M_{0j} = M_{1j}$ (same value at $\pm 1$) → rows 0 and 1 are equal in columns 0,2
+Odd $\phi_j$: $M_{0j} = -M_{1j}$ → rows 0 and 1 are negatives in columns 1,3
+This means rows 0 and 1 together look like $[\text{row}_s, \text{row}_d]$ where row$_s$ is the "sum row" and row$_d$ is the "difference row". The resulting matrix has a tensor-product-like structure in the row space that maps cleanly to the Z⊗* sector of the Pauli decomposition. The collocation rows don't maintain this parity (because $d/dt$ flips parity), but the boundary rows contribute only Z⊗-type and I⊗-type strings — cutting those contributions roughly in half.
+
+Recommended approach
+The most tractable path is: (1) set up the linear system for Idea 3 (direct Pauli zeroing — 6 linear equations in 6 unknowns, solvable in closed form), check invertibility, then (2) verify numerically using the L1 formulation (Idea 4) whether the found solution is globally optimal or whether further reduction is possible by relaxing the monic normalization assumption.
+
+Would you like me to solve the Idea 3 system explicitly, or set up the L1 program for numerical
+
+\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
+
+Does it scale though?
+
+The scaling problem
+For an $n$-qubit system (matrix size $2^n \times 2^n$):
+
+quantity	size
+Pauli strings	$4^n$
+Free $C$ parameters in the basis	$O(4^n)$
+Symmetry constraints (Idea 1)	$O(4^n)$
+Pauli-zeroing constraints (Idea 3)	$O(4^n)$
+LP variables in L1 minimization (Idea 4)	$O(4^n)$
+Every approach just trades one $O(4^n)$ problem for another. Your point about the 4×4 → 6×6 system already names this: we gain nothing. At $n=3$ you'd solve a hundreds-by-hundreds system to optimize a 64-entry matrix.
+
+What could actually scale?
+The only approaches that scale polynomially are ones that respect the tensor product structure of the Pauli algebra from the start:
+
+Tensor product basis. If you can write $\phi_j = \phi_{j_1}^{(1)} \otimes \phi_{j_2}^{(2)} \otimes \cdots \otimes \phi_{j_n}^{(n)}$ and the collocation matrix factorizes as $A = A^{(1)} \otimes A^{(2)} \otimes \cdots \otimes A^{(n)}$, then
+
+$$A = \bigotimes_k A^{(k)}, \qquad c_{P_1\otimes\cdots\otimes P_n}(A) = \prod_k c_{P_k}(A^{(k)})$$
+
+You optimize $n$ independent $2\times 2$ problems — cost $O(n)$, Pauli count at most $3^n$ (one of the 4 choices per qubit can be forced to zero). This is the only path that is exponentially cheaper than the brute-force.
+
+Operator-level analysis instead of matrix-level. Rather than assembling $A$ and then decomposing it, analyze how each sub-operator ($I$, $\partial$, $\partial^2$) contributes Pauli strings. In Experiment 2, $L = \partial^2 + \partial + I$ — each piece has its own Pauli signature. Choose the basis $C$ so the cross-terms between pieces cancel, working entirely in the operator algebra (which has $O(4^n)$ elements but structured by the few terms in $L$).
+
+Walsh/Hadamard basis (Pauli eigenfunctions). Walsh functions are eigenfunctions of Pauli $Z^{\otimes n}$, so a collocation matrix in a Walsh basis is naturally diagonal or block-diagonal in the Pauli basis — without any optimization. The cost is built into the basis choice, not a post-hoc search.
+
+The fundamental tension
+The collocation points live on a $1$-dimensional interval. Mapping them to $n$ qubits (i.e., $2^n$ grid points) doesn't automatically inherit a tensor product structure — you have to design the problem (collocation points, basis functions, operator discretization) so the tensor product structure is exact. If the problem doesn't factorize, no polynomial-cost basis search will fix it.
+
+This suggests the real research question is: for which classes of differential operators $L$ and boundary conditions do the collocation matrices have a tensor product structure that maps cleanly to the Pauli algebra? That is likely a much narrower class than "all second-order ODEs."
+
+\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
+
+
+The basis change identity
+The collocation matrix in any polynomial basis is:
+
+$$M = C \cdot B^T$$
+
+where $C$ is the Case A (monomial) matrix and $B$ is the basis transformation ($B_{jk}$ = coefficient of $t^k$ in $\phi_j$). For any invertible target $M$, we can set $B = C^{-T} M^T$ and get a valid basis. The physical solution $u(t)$ is unchanged.
+
+Consequence: 3 Pauli strings is always achievable
+Choose $M = I \otimes A_2$ with $A_2 = \bigl[\begin{smallmatrix}2&2\2&4\end{smallmatrix}\bigr]$ (same structure as Experiment 1). The script confirms:
+
+3 Pauli strings: II, IX, IZ
+Solution correctly recovers $u(t) = t^2 + t$
+Basis $B$ is invertible (det = 1.71)
+We can even achieve 1 Pauli string ($M = I_4$) with the dual basis.
+
+Why this doesn't scale (the fundamental trade-off)
+This is the critical part:
+
+Pauli count	Matrix structure	Classical cost
+1 ($M = I$)	trivial	$O(N)$
+3 ($M = I \otimes A_2$)	$2^{n-1}$ copies of same $2{\times}2$ system	$O(N)$
+$3^k$ ($k$ non-trivial factors)	$2^{n-k}$ copies of $2^k{\times}2^k$ system	$O(2^{n+2k})$
+$3^n$ (all factors non-trivial)	genuinely coupled	$O(8^n)$ -- same order as brute force
+Fewer Pauli strings $\Leftrightarrow$ more block structure $\Leftrightarrow$ classically easier. You can't win: reducing Paulis for a 1D problem removes the very complexity that would justify a quantum solver.
+
+Where tensor products genuinely help: multi-D PDEs
+For a PDE like $\nabla^2 u = f$ on $[-1,1]^d$, the collocation matrix naturally decomposes as:
+
+$$A = D \otimes E \otimes \cdots \otimes E + E \otimes D \otimes \cdots \otimes E + \cdots$$
+
+This is a sum of $d$ Kronecker products where the structure comes from the physics (spatial dimensions), not an artificial trick. The script shows the 2D Laplacian preview gives 8-9 Pauli strings out of 16, and the system is genuinely $2^d$-dimensional.
+
+This points strongly toward Experiment 3 (2D Laplace) as the right setting to study -- the tensor product structure is intrinsic there.
+
+
+
+
+\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
+
+
+What the basis change does in 2D
+In 1D (Experiment 2), choosing basis ${\phi_j}$ with transformation matrix $B$ gives $M = C \cdot B^T$ — you can freely choose any invertible $M$.
+
+In 2D, the same $B^T$ is applied to all three 1D building blocks simultaneously:
+
+$$C_\text{new} = C \cdot B^T, \quad (SE)\text{new} = SE \cdot B^T, \quad (BE)\text{new} = BE \cdot B^T$$
+
+So the 2D matrix becomes:
+
+$$A_\text{new} = (C \cdot B^T) \otimes (SE \cdot B^T) + (SE \cdot B^T) \otimes (C \cdot B^T) + (BE \cdot B^T) \otimes (BE \cdot B^T)$$
+
+The three terms share the same $B^T$ — you can't minimize each independently. This is the key coupling that makes 2D harder to trivialize.
+
+What the current code already shows
+Step 7–8 in laplace_2d_tensor.py applies the Experiment 1 basis, which was optimized to minimize Pauli count of $C$ alone. This reduces the 2D Pauli count, but it's not the global optimum for 2D — you'd want $B^T$ that minimizes the Pauli count of the full sum of three Kronecker products jointly.
+
+The two levers
+Lever 1 — Basis change $B$: Operates on the column space (which polynomials you expand in). Acts identically on $C$, $SE$, $BE$ via right-multiplication. You can set up an L1 minimization:
+
+$$\min_B #{\text{nonzero Pauli strings of } A_\text{new}(B)} \quad \text{s.t.} \det(C \cdot B^T) \neq 0$$
+
+Since each Pauli coefficient of $A_\text{new}$ is a polynomial function of the entries of $B$, this is harder than the 1D LP (it's no longer linear in $B$), but tractable for small matrices.
+
+Lever 2 — Collocation points: Changing the interior nodes (away from $\pm 1/3$) changes $E$ and $D$ numerically, modifying the Pauli structure of $C$, $SE$, $BE$ independently of any basis change. Different node placements (Gauss-Lobatto, Chebyshev, etc.) may yield intrinsically sparser 1D blocks.
+
+The structural floor
+Unlike 1D (where $M = I$ gives 1 Pauli string), in 2D you cannot collapse the three Kronecker terms to trivially few strings without degeneracy:
+
+$C \otimes SE$ comes from the $\partial^2_x$ term
+$SE \otimes C$ comes from the $\partial^2_y$ term
+$BE \otimes BE$ comes from boundary enforcement
+For all three to merge into one Kronecker product, you'd need $SE = \lambda C$ and $BE = \mu C$ as matrices — but $SE$ has zeros in boundary rows, $BE$ has zeros in interior rows, and $C$ mixes both. These structural zeros (which are preserved under right-multiplication) prevent such proportionality unless the system degenerates.
+
+Bottom line
+Lever	Effect	Limitation
+Basis change $B$	Reduces 2D count jointly via shared $B^T$	Coupled optimization; not as free as 1D
+Collocation points	Changes $D$, $E$ independently of basis	Numerical; changes accuracy properties too
+Both jointly	Maximum reduction	Still bounded below by 3-term Kronecker structure
+The current code uses the 1D-optimal basis, not the 2D-optimal one. An L1 program over $B$ (16 free parameters) would find the true minimum for the 2D problem — this is the natural next experiment.
+
+
+\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
+
+
+
+\end{document}

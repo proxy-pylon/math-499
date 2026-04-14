@@ -2,3 +2,225 @@
 % next experiment is to add f(t) that is not a polynomial family
 % next is laplace in 2D
 
+% the ODE is u''+u'+u=t^2+3t+3
+% initial conditions u(-1)=0, u(1)=2
+% collocation points at t=-1/3, t=1/3
+% the solution is u(t) = t^2 + t  (not t^2+2t: u(-1)=1-1=0 and u(1)=1+1=2)
+
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{array}
+
+\begin{document}
+
+\section*{Collocation Method for a Second-Order ODE with Lower-Order Terms}
+
+\subsection*{1. The Initial Problem}
+We seek a solution $u(t)$ for the following boundary value problem (BVP) on the interval $t \in [-1, 1]$:
+\begin{equation}
+    u''(t) + u'(t) + u(t) = t^2 + 3t + 3
+\end{equation}
+subject to the boundary conditions:
+\begin{itemize}
+    \item $u(-1) = 0$
+    \item $u(1) = 2$
+\end{itemize}
+and the interior collocation requirements:
+\begin{itemize}
+    \item $L[u](-1/3) = f(-1/3)$
+    \item $L[u](1/3) = f(1/3)$
+\end{itemize}
+where $L[\,\cdot\,] := (\,\cdot\,)'' + (\,\cdot\,)' + (\,\cdot\,)$ and $f(t) = t^2 + 3t + 3$.  Evaluating
+the right-hand side at the collocation points:
+\begin{equation}
+    f\!\left(-\tfrac{1}{3}\right) = \tfrac{1}{9} - 1 + 3 = \tfrac{19}{9}, \qquad
+    f\!\left(\tfrac{1}{3}\right)  = \tfrac{1}{9} + 1 + 3 = \tfrac{37}{9}.
+\end{equation}
+The exact solution to this BVP is $u(t) = t^2 + t$.
+
+\subsection*{2. Case A: Specific Power Basis}
+Using the standard monomial basis $\phi = \{1, t, t^2, t^3\}$, the trial function is
+$u(t) = a_0 + a_1 t + a_2 t^2 + a_3 t^3$.
+We apply the operator $L[\,\cdot\,] = (\,\cdot\,)'' + (\,\cdot\,)' + (\,\cdot\,)$ to each basis
+function by computing its second derivative, first derivative, and the function itself, then summing:
+\begin{align*}
+    L[\phi_0]
+        &= \underbrace{(1)''}_0 + \underbrace{(1)'}_0 + \underbrace{1}_{1}
+         = 1 \\[4pt]
+    L[\phi_1]
+        &= \underbrace{(t)''}_0 + \underbrace{(t)'}_{1} + \underbrace{t}_{t}
+         = 1 + t \\[4pt]
+    L[\phi_2]
+        &= \underbrace{(t^2)''}_{2} + \underbrace{(t^2)'}_{2t} + \underbrace{t^2}_{t^2}
+         = 2 + 2t + t^2 \\[4pt]
+    L[\phi_3]
+        &= \underbrace{(t^3)''}_{6t} + \underbrace{(t^3)'}_{3t^2} + \underbrace{t^3}_{t^3}
+         = 6t + 3t^2 + t^3
+\end{align*}
+
+\paragraph{Assembling the matrix.}
+The collocation method turns each condition into one row of the matrix.  The entry in
+row $i$, column $j$ is obtained by asking: ``what does condition $i$ give when applied to the
+$j$-th basis function $\phi_j$ alone?''  With the four conditions ordered as
+(BC at $-1$), (BC at $1$), (ODE at $-\tfrac{1}{3}$), (ODE at $\tfrac{1}{3}$), the entries are:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.6}
+\begin{tabular}{c|cccc}
+ & $\phi_0 = 1$ & $\phi_1 = t$ & $\phi_2 = t^2$ & $\phi_3 = t^3$ \\
+\hline
+$u(-1)$
+    & $1$ & $-1$ & $1$ & $-1$ \\
+$u(1)$
+    & $1$ & $1$ & $1$ & $1$ \\
+$L[\phi_j]\!\left(-\tfrac{1}{3}\right)$
+    & $1$
+    & $1 - \tfrac{1}{3} = \tfrac{2}{3}$
+    & $2 - \tfrac{2}{3} + \tfrac{1}{9} = \tfrac{13}{9}$
+    & $-2 + \tfrac{1}{3} - \tfrac{1}{27} = -\tfrac{46}{27}$ \\
+$L[\phi_j]\!\left(\tfrac{1}{3}\right)$
+    & $1$
+    & $1 + \tfrac{1}{3} = \tfrac{4}{3}$
+    & $2 + \tfrac{2}{3} + \tfrac{1}{9} = \tfrac{25}{9}$
+    & $2 + \tfrac{1}{3} + \tfrac{1}{27} = \tfrac{64}{27}$ \\
+\end{tabular}
+\end{center}
+Reading off each row gives the system $Ax = b$:
+\begin{equation}
+\begin{bmatrix}
+1 & -1 & 1 & -1 \\[4pt]
+1 &  1 & 1 &  1 \\[4pt]
+1 & \dfrac{2}{3}  & \dfrac{13}{9}  & -\dfrac{46}{27} \\[10pt]
+1 & \dfrac{4}{3}  & \dfrac{25}{9}  &  \dfrac{64}{27}
+\end{bmatrix}
+\begin{bmatrix} a_0 \\ a_1 \\ a_2 \\ a_3 \end{bmatrix}
+=
+\begin{bmatrix} 0 \\[4pt] 2 \\[4pt] \dfrac{19}{9} \\[10pt] \dfrac{37}{9} \end{bmatrix}
+\end{equation}
+The right-hand side entries for the boundary rows come directly from the BCs
+($u(-1)=0$, $u(1)=2$); the entries for the collocation rows are the values of $f(t)$
+evaluated at the respective collocation point.
+
+The system has a unique solution:
+\begin{equation}
+\begin{bmatrix} a_0 \\ a_1 \\ a_2 \\ a_3 \end{bmatrix}
+= \begin{bmatrix} 0 \\ 1 \\ 1 \\ 0 \end{bmatrix},
+\end{equation}
+giving $u(t) = t^2 + t$, confirming the exact answer.
+
+The matrix is decomposable into a linear combination of Pauli strings.
+In this case all 16 two-qubit Pauli strings are generally needed to represent the matrix exactly.
+
+\subsection*{3. Case B: Generalized Basis with Coefficients $C$}
+We define the basis functions $\phi_i(t)$ as general polynomials with coefficients $C_{ij}$:
+\begin{align*}
+    \phi_0(t) &= C_{00} \\
+    \phi_1(t) &= C_{11}t + C_{10} \\
+    \phi_2(t) &= C_{22}t^2 + C_{21}t + C_{20} \\
+    \phi_3(t) &= C_{33}t^3 + C_{32}t^2 + C_{31}t + C_{30}
+\end{align*}
+Applying $L[\,\cdot\,] = (\,\cdot\,)'' + (\,\cdot\,)' + (\,\cdot\,)$ to each basis function by
+computing each term separately and collecting by power of $t$:
+\begin{align*}
+    L[\phi_0]
+        &= \underbrace{0}_{\phi_0''} + \underbrace{0}_{\phi_0'} + \underbrace{C_{00}}_{\phi_0}
+         = C_{00} \\[6pt]
+    L[\phi_1]
+        &= \underbrace{0}_{\phi_1''} + \underbrace{C_{11}}_{\phi_1'} + \underbrace{C_{11}t + C_{10}}_{\phi_1}
+         = (C_{10} + C_{11}) + C_{11}\,t \\[6pt]
+    L[\phi_2]
+        &= \underbrace{2C_{22}}_{\phi_2''} + \underbrace{2C_{22}t + C_{21}}_{\phi_2'}
+           + \underbrace{C_{22}t^2 + C_{21}t + C_{20}}_{\phi_2} \\
+        &= (C_{20} + C_{21} + 2C_{22}) + (C_{21} + 2C_{22})\,t + C_{22}\,t^2 \\[6pt]
+    L[\phi_3]
+        &= \underbrace{6C_{33}t + 2C_{32}}_{\phi_3''}
+           + \underbrace{3C_{33}t^2 + 2C_{32}t + C_{31}}_{\phi_3'}
+           + \underbrace{C_{33}t^3 + C_{32}t^2 + C_{31}t + C_{30}}_{\phi_3} \\
+        &= (C_{30} + C_{31} + 2C_{32})
+           + (C_{31} + 2C_{32} + 6C_{33})\,t
+           + (C_{32} + 3C_{33})\,t^2
+           + C_{33}\,t^3
+\end{align*}
+
+\paragraph{Assembling the matrix.}
+Each matrix entry $(i,j)$ is obtained by evaluating the condition for row~$i$ on the
+basis function $\phi_j$ alone.  For the two boundary rows this means evaluating $\phi_j$
+at the boundary point; for the two collocation rows it means evaluating $L[\phi_j]$ at
+the collocation point.
+
+\smallskip
+\noindent\textit{Boundary rows.}  Since $\phi_j(t)$ is a polynomial, evaluation at
+$t=-1$ and $t=1$ just substitutes the sign:
+\begin{align*}
+    \phi_j(-1) &: \text{ replace } t \to -1 \text{ in } \phi_j \\
+    \phi_j(1)  &: \text{ replace } t \to  1 \text{ in } \phi_j
+\end{align*}
+
+\noindent\textit{Collocation rows.}  Evaluate the polynomial $L[\phi_j](t)$ derived above
+at $t = -1/3$ and $t = 1/3$, collecting the resulting scalar.  For example, column $j=1$:
+\begin{align*}
+    L[\phi_1]\!\left(-\tfrac{1}{3}\right)
+        &= \left(C_{10} + C_{11}\right) + C_{11}\!\left(-\tfrac{1}{3}\right)
+         = C_{10} + C_{11} - \tfrac{C_{11}}{3}
+         = C_{10} + \tfrac{2}{3}C_{11} \\
+    L[\phi_1]\!\left(\tfrac{1}{3}\right)
+        &= \left(C_{10} + C_{11}\right) + C_{11}\!\left(\tfrac{1}{3}\right)
+         = C_{10} + C_{11} + \tfrac{C_{11}}{3}
+         = C_{10} + \tfrac{4}{3}C_{11}
+\end{align*}
+The same procedure applied to $\phi_2$ and $\phi_3$ produces the remaining entries.
+Applying the four conditions to the trial function $u(t) = \sum_{i=0}^3 a_i \phi_i(t)$ yields the system:
+\begin{equation}
+\begin{bmatrix}
+C_{00}
+  & C_{10} - C_{11}
+  & C_{20} - C_{21} + C_{22}
+  & C_{30} - C_{31} + C_{32} - C_{33} \\[4pt]
+C_{00}
+  & C_{10} + C_{11}
+  & C_{20} + C_{21} + C_{22}
+  & C_{30} + C_{31} + C_{32} + C_{33} \\[4pt]
+C_{00}
+  & C_{10} + \tfrac{2}{3}C_{11}
+  & C_{20} + \tfrac{2}{3}C_{21} + \tfrac{13}{9}C_{22}
+  & C_{30} + \tfrac{2}{3}C_{31} + \tfrac{13}{9}C_{32} - \tfrac{46}{27}C_{33} \\[6pt]
+C_{00}
+  & C_{10} + \tfrac{4}{3}C_{11}
+  & C_{20} + \tfrac{4}{3}C_{21} + \tfrac{25}{9}C_{22}
+  & C_{30} + \tfrac{4}{3}C_{31} + \tfrac{25}{9}C_{32} + \tfrac{64}{27}C_{33}
+\end{bmatrix}
+\begin{bmatrix} a_0 \\ a_1 \\ a_2 \\ a_3 \end{bmatrix}
+=
+\begin{bmatrix} 0 \\ 2 \\ \tfrac{19}{9} \\ \tfrac{37}{9} \end{bmatrix}
+\end{equation}
+
+\subsection*{4. Why a Block-Diagonal Structure is No Longer Available}
+
+In Experiment~1, the operator $L_1[\,\cdot\,] = (\,\cdot\,)''$ annihilated every polynomial of degree
+$\leq 1$, so the collocation rows (rows 3--4) automatically had zeros in the first two columns for
+\emph{any} choice of $\phi_0$ and $\phi_1$.  This gave a lower-left zero block by construction,
+and the Pauli-minimisation strategy then zeroed the upper-right block by constraint, producing a
+block-diagonal matrix with at most 8 non-zero Pauli strings.
+
+In Experiment~2, the operator $L_2[\,\cdot\,] = (\,\cdot\,)'' + (\,\cdot\,)' + (\,\cdot\,)$ contains
+the identity term $(\,\cdot\,)$, so $L_2[\phi_0] = C_{00}$ and $L_2[\phi_1]$ involves both constant
+and $t$-terms.  Consequently, the lower-left $2\times 2$ block of the Case~B matrix has entries
+\begin{equation}
+    \begin{pmatrix}
+        C_{00} & C_{10} + \tfrac{2}{3}C_{11} \\
+        C_{00} & C_{10} + \tfrac{4}{3}C_{11}
+    \end{pmatrix}.
+\end{equation}
+Forcing this block to zero requires $C_{00} = 0$, $C_{10} + \tfrac{2}{3}C_{11} = 0$, and
+$C_{10} + \tfrac{4}{3}C_{11} = 0$; subtracting the last two equations gives $C_{11} = 0$, then
+$C_{10} = 0$, and finally $C_{00} = 0$.  But this makes $\phi_0 \equiv 0$ and $\phi_1 \equiv 0$,
+so the basis is degenerate.
+
+\paragraph{Consequence.}
+The lower-left zero block that underpinned the Experiment~1 strategy is structurally
+impossible in Experiment~2: any non-degenerate basis leaves the collocation rows coupled to
+$\phi_0$ and $\phi_1$.  Minimising the Pauli count therefore requires a different approach
+(e.g.\ an alternative $2+2$ row partition, a $1+3$ or $3+1$ partition, or operator
+pre-conditioning) and may not reach three Pauli strings.
+
+\end{document}
