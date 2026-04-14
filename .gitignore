@@ -1,1 +1,6 @@
 *.docx
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.toc
