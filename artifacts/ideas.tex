@@ -1,5 +1,8 @@
 \documentclass{article}
-\usepackage{graphicx} % Required for inserting images
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
 
 \title{Renderer}
 \author{adilet akimshe}
@@ -185,5 +188,123 @@ The current code uses the 1D-optimal basis, not the 2D-optimal one. An L1 progra
 \noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
 
 
+
+\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
+
+\section*{VQLS Experiments: LP Preprocessing vs.\ Monomial Basis}
+
+\subsection*{Setup}
+
+We ran the Variational Quantum Linear Solver (VQLS) with the local Hadamard-test
+cost function on three experiments:
+\begin{itemize}
+    \item Experiment~1: $u''=0$ on $[0,1]$, $N=4$ (2 qubits).
+    \item Experiment~2: $u''+u'+u = t^2+3t+3$ on $[-1,1]$, $N=4$ (2 qubits).
+    \item Experiment~3: same ODE as Exp.~2, $N=8$ (3 qubits).
+\end{itemize}
+For each experiment we compared two system matrices:
+\begin{enumerate}
+    \item \textbf{Case A} --- the monomial (standard) collocation matrix
+    $A_{\mathrm{mono}}$, normalised by its Frobenius norm.
+    \item \textbf{LP optimum} --- the identity matrix $M^*=I_N$, obtained by
+    the basis-change LP, also normalised.
+\end{enumerate}
+The VQLS ansatz is a single layer of $R_y$ rotations preceded by Hadamard gates
+($n$ variational parameters).  Optimisation uses gradient descent with learning
+rate $\eta=0.8$.  The implementation uses PennyLane~0.44.1 with the
+\texttt{lightning.qubit} simulator.
+
+\subsection*{Cost per optimisation step}
+
+The local cost function requires $O(L^2 \cdot n)$ Hadamard-test circuit
+evaluations per gradient step, where $L$ is the number of nonzero Pauli strings
+and $n$ is the qubit count.
+
+\begin{center}
+\begin{tabular}{lrrrrrr}
+\toprule
+Experiment & $N$ & $n$ & $L_A$ & $L_{\mathrm{LP}}$ & HT/step (A) & HT/step (LP) \
+\midrule
+Exp.~1 & 4 & 2 & 16 & 1 & 768 & 3 \
+Exp.~2 & 4 & 2 & 16 & 1 & 768 & 3 \
+Exp.~3 & 8 & 3 & 64 & 1 & 16384 & 4 \
+\bottomrule
+\end{tabular}
+\end{center}
+
+The LP preprocessing reduces the Hadamard-test count per step by a factor of
+$L_A^2 = N^4$: \textbf{256$\times$} at $N=4$ and \textbf{4096$\times$} at
+$N=8$.
+
+\subsection*{Observed timing}
+
+On a CPU simulator, the observed wall-clock time per step was:
+
+\begin{center}
+\begin{tabular}{lrrr}
+\toprule
+Experiment & s/step (Case A) & s/step (LP) & Speedup \
+\midrule
+Exp.~1 & 17.2 & 0.052 & $\approx330\times$ \
+Exp.~2 & 15.1 & 0.063 & $\approx240\times$ \
+Exp.~3 & $\sim$240 (est.) & 0.11 & $\sim$2200$\times$ \
+\bottomrule
+\end{tabular}
+\end{center}
+
+Experiment~3 Case~A was not run to completion (estimated $\sim$10 hours for 150
+steps on CPU); the per-step time is extrapolated from the $N=4$ scaling.
+
+\subsection*{Convergence}
+
+\paragraph{Experiment 1.}
+Case~A: after 20 steps ($\approx344$\,s) the cost is still $0.183$, showing
+negligible progress.  LP optimum: converges to cost $\approx 0$ in
+\textbf{13 steps} ($\approx0.7$\,s total), reaching machine-precision zero by
+step~40.
+
+\paragraph{Experiment 2.}
+Case~A: cost $0.187$ after 20 steps ($\approx302$\,s), essentially stuck.
+LP optimum: drops to $0.025$ in \textbf{4 steps} ($\approx0.25$\,s) and then
+plateaus.  The plateau is not a VQLS failure --- it is an \emph{ansatz
+expressibility limit}: the single-layer $R_y$ circuit (3 parameters) cannot
+represent the exact normalised $|b\rangle$ for this right-hand side.  The
+minimum achievable cost with this ansatz is $\approx 0.025$.
+
+\paragraph{Experiment 3 ($N=8$).}
+LP optimum: cost drops from $0.146$ to $0.012$ in 4 steps, then plateaus at
+$\approx 0.012$ (same ansatz-depth bottleneck, now with 3 parameters for an
+8-dimensional system).  Case~A is infeasible on CPU.
+
+\subsection*{Interpretation}
+
+\paragraph{Two separate bottlenecks.}
+VQLS performance is limited by two independent factors:
+\begin{enumerate}
+    \item \textbf{Circuit evaluation overhead} --- $O(L^2 n)$ Hadamard tests
+    per step, cured completely by the LP preprocessing ($L=1$ after LP).
+    \item \textbf{Ansatz expressibility} --- the variational circuit must be
+    expressive enough to reach the solution state $|x\rangle \propto A^{-1}|b\rangle$.
+    A deeper ansatz (e.g.\ strongly entangling layers) would push the cost
+    plateau lower but does not interact with the Pauli count.
+\end{enumerate}
+
+\paragraph{LP preprocessing is necessary but not sufficient for quantum speedup.}
+After LP, the system matrix is $I_N$ and the VQLS cost collapses to
+$\|V(w)|0\rangle - |b\rangle\|^2 / \||b\rangle\|^2$: purely a state-preparation
+problem.  The quantum advantage (if any) then depends entirely on whether the
+state $|b\rangle$ is efficiently preparable and whether the classical solver for
+$I_N x = b$ (trivially $x = b$) is slower than the quantum circuit.  For the
+1D ODE problems studied here it is not, confirming the earlier theoretical
+conclusion that reducing Pauli count to 1 eliminates quantum advantage along
+with quantum difficulty.
+
+\paragraph{Scaling outlook.}
+The Hadamard-test speedup grows as $N^4$, so LP preprocessing becomes
+increasingly critical as the system size grows.  However, since $M^*=I_N$ is
+always the LP optimum for these problems, the interesting open question is
+whether there exist ODE discretisations for which the LP minimum is greater
+than~1 but still $\mathrm{poly}(n)$ --- that regime would combine a meaningful
+Pauli structure with potential quantum speedup.
 
 \end{document}

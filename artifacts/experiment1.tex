@@ -190,10 +190,77 @@ After normalising by $\|A\| = \sqrt{6a^2+2c^2} = 2\sqrt{14}$, the Pauli decompos
 \end{equation}
 which is an 81\% reduction from the 16 Pauli strings required in Case A.
 
+\paragraph{Why three is not the global minimum.}
+The argument above that three Pauli strings is the minimum rests on the monic
+normalisation $C_{jj}=1$ and on the specific block-diagonal structure imposed in
+Steps~1--3.  It is the minimum \emph{within that family}, but not over all
+admissible collocation matrices.
 
+\subsection*{6. Global Optimum via the Basis-Change Identity}
+
+\paragraph{The identity.}
+Any polynomial basis $\{\phi_j\}$ with coefficient matrix $B$
+(so that $\phi_j(t)=\sum_{k=0}^{j}B_{jk}\,t^k$) yields a collocation matrix
+\begin{equation}
+    M = A_{\mathrm{mono}} \cdot B^{\top},
+\end{equation}
+where $A_{\mathrm{mono}}$ is the Case~A monomial matrix.  Given any invertible
+target $M$ we can recover a valid basis via
+\begin{equation}
+    B = \bigl(A_{\mathrm{mono}}^{-1}\,M\bigr)^{\!\top}.
+\end{equation}
+Because $B$ is invertible whenever $M$ is, there is a bijection between
+non-singular collocation matrices and non-degenerate polynomial bases.
+The Pauli count is therefore a property of $M$ alone.
+
+\paragraph{LP formulation.}
+Each Pauli coefficient $c_P = \tfrac{1}{4}\operatorname{Tr}(P\,M)$ is linear in the
+entries of $M$.  The L1 surrogate for the Pauli count is
+\begin{equation}
+    \min_{M}\;\sum_{P}|c_P(M)|
+    \quad\text{s.t.}\quad \operatorname{Tr}(M) = 4,
+\end{equation}
+where $\operatorname{Tr}(M)=4$ pins the $II$ coefficient to $c_{II}=1$ and
+prevents the trivial solution $M\to 0$.  All 16 matrix entries are free real
+variables; the absolute values are linearised with slack variables $t_P\geq|c_P|$,
+giving a standard LP solved with the HiGHS simplex method.
+
+\paragraph{Result.}
+The LP finds the global optimum
+\begin{equation}
+    M^* = I_4,
+    \qquad
+    c_{II} = 1, \quad c_P = 0 \;\text{for all other } P.
+\end{equation}
+This is a \textbf{single Pauli string}---a 94\% reduction from Case~A and a
+further improvement over the three-string analytical solution.
+
+\paragraph{Corresponding basis.}
+Applying $B = (A_{\mathrm{mono}}^{-1}\,I_4)^{\top}$ gives the dual basis
+\begin{align*}
+    \phi_0(t) &= 1 - t, \\
+    \phi_1(t) &= t, \\
+    \phi_2(t) &= -\tfrac{1}{2}t + t^2 - \tfrac{1}{2}t^3, \\
+    \phi_3(t) &= -\tfrac{1}{2}t^2 + \tfrac{1}{2}t^3.
+\end{align*}
+The basis is non-degenerate ($\det B = \tfrac{1}{4}\neq 0$).  Solving
+$M^*\mathbf{a}=\mathbf{b}$ with $\mathbf{b}=[0,1,0,0]^{\top}$ gives
+$\mathbf{a}=[0,1,0,0]^{\top}$, so $u(t)=\phi_1(t)=t$, which is the exact solution.
+
+\paragraph{Summary of Pauli counts.}
+\begin{center}
+\begin{tabular}{lcc}
+\hline
+Basis & Pauli strings & Notes \\
+\hline
+Case A (monomial)              & 16 & no structure exploited \\
+Case B (block-diagonal, monic) &  3 & analytical construction \\
+LP global optimum ($M^*=I_4$)  &  1 & basis-change identity \\
+\hline
+\end{tabular}
+\end{center}
 
 \end{document}
-
 
 
 % explain how you got the pauli strings

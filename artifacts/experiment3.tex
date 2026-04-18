@@ -1,0 +1,166 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{amssymb}
+\usepackage{braket}
+
+\begin{document}
+
+\section*{Collocation Method: Scaling to Three Qubits}
+
+\subsection*{1. Setup}
+
+We return to the boundary value problem from Experiment~2:
+\begin{equation}
+    u''(t) + u'(t) + u(t) = t^2 + 3t + 3, \qquad t \in [-1, 1],
+\end{equation}
+with boundary conditions $u(-1) = 0$, $u(1) = 2$ and exact solution $u(t) = t^2 + t$.
+
+In Experiments~1 and~2 we used $N = 4$ (two qubits): two boundary rows and two
+interior collocation rows, with a degree-3 polynomial trial function.  Here we
+scale to $N = 8$ (three qubits): two boundary rows and \textbf{six} interior
+collocation rows, with a degree-7 polynomial trial function
+\begin{equation}
+    u(t) = \sum_{j=0}^{7} a_j\,\phi_j(t).
+\end{equation}
+The six equidistant interior collocation points on $(-1,1)$ are
+\begin{equation}
+    t_k = -1 + \frac{k}{7}, \qquad k = 1, 2, \ldots, 6,
+\end{equation}
+i.e.\ $t_1 \approx -0.714$, $t_2 \approx -0.429$, $t_3 \approx -0.143$,
+$t_4 \approx 0.143$, $t_5 \approx 0.429$, $t_6 \approx 0.714$.
+
+\subsection*{2. Case A: Monomial Basis}
+
+Using the standard basis $\phi_j(t) = t^j$, the collocation matrix
+$A_{\mathrm{mono}}$ is $8\times 8$ with
+\begin{itemize}
+    \item Row 0: evaluate $\phi_j(-1)$ (BC at $-1$),
+    \item Row 1: evaluate $\phi_j(1)$ (BC at $+1$),
+    \item Rows 2--7: evaluate $L[\phi_j](t_k)$ at each interior point,
+\end{itemize}
+where $L[\,\cdot\,] = (\,\cdot\,)'' + (\,\cdot\,)' + (\,\cdot\,)$.  The matrix
+is $8\times 8$, non-singular ($\det A_{\mathrm{mono}} \approx 1003.4$), and
+decomposes into all $4^3 = \mathbf{64}$ three-qubit Pauli strings.  Solving the
+system recovers coefficients $a_0=0$, $a_1=1$, $a_2=1$, $a_j=0$ for $j\geq 3$,
+confirming $u(t)=t^2+t$.
+
+\subsection*{3. Pauli Count Explosion}
+
+Comparing the three experiments:
+
+\begin{center}
+\begin{tabular}{cccccc}
+\toprule
+Experiment & Operator & $N$ & Qubits & Pauli strings (Case A) & Total possible \\
+\midrule
+1 & $u''=0$                   & 4 & 2 & 16 & 16 \\
+2 & $u''+u'+u=f$              & 4 & 2 & 16 & 16 \\
+3 & $u''+u'+u=f$ (scaled)     & 8 & 3 & 64 & 64 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The monomial basis saturates all available Pauli strings in every case: adding
+more collocation points does not improve the Pauli structure---it only makes it
+exponentially worse.
+
+\subsection*{4. Global Optimum via Linear Programming}
+
+\paragraph{LP formulation.}
+By the basis-change identity $M = A_{\mathrm{mono}}\,B^{\top}$ (established in
+Experiments~1 and~2), every non-singular collocation matrix $M$ is reachable by
+choosing $B = (A_{\mathrm{mono}}^{-1}\,M)^{\top}$.  Each Pauli coefficient
+$c_P = \tfrac{1}{8}\operatorname{Tr}(P\,M)$ is linear in the entries of $M$, so
+we solve
+\begin{equation}
+    \min_{M \in \mathbb{R}^{8\times 8}}\;\sum_{P}|c_P(M)|
+    \quad\text{s.t.}\quad \operatorname{Tr}(M) = 8.
+\end{equation}
+The problem has $64 + 64 = 128$ variables (matrix entries plus slacks) and
+$128 + 1$ constraints.
+
+\paragraph{Result.}
+The LP (HiGHS solver) terminates with status \emph{Optimal} and finds
+\begin{equation}
+    M^* = I_8,
+    \qquad
+    c_{III} = 1, \quad c_P = 0 \;\text{ for all other } P.
+\end{equation}
+This is a single Pauli string out of 64 — a \textbf{98.4\% reduction} from
+Case~A.
+
+\paragraph{Corresponding basis.}
+The dual basis $B = A_{\mathrm{mono}}^{-\top}$ (numerically, $\det B \approx
+9.97\times 10^{-4} \neq 0$) has coefficients:
+\begin{align*}
+\phi_0(t) &\approx 0.4681 - 0.5788\,t + 0.0554\,t^2 + 0.0780\,t^3
+            - 0.0241\,t^4 + 0.0009\,t^5 + 0.0007\,t^6 - 0.0001\,t^7,\\
+\phi_1(t) &\approx 1.2724 + 0.3010\,t - 0.7867\,t^2 + 0.2121\,t^3
+            + 0.0126\,t^4 - 0.0131\,t^5 + 0.0017\,t^6 + 0.0001\,t^7,\\
+\phi_2(t) &\approx -0.0521 + 0.0775\,t - 0.0062\,t^2 - 0.0136\,t^3
+            - 0.0558\,t^4 + 0.0558\,t^5 + 0.1140\,t^6 - 0.1198\,t^7,\\
+\phi_3(t) &\approx -0.1094 + 0.0599\,t - 0.0276\,t^2 + 0.0370\,t^3
+            + 0.4409\,t^4 - 0.6676\,t^5 - 0.3039\,t^6 + 0.5707\,t^7,
+\end{align*}
+and $\phi_4,\ldots,\phi_7$ similarly (higher-degree corrections to the remaining
+collocation rows).  Solving $I_8\,\mathbf{a}=\mathbf{b}$ gives $\mathbf{a}=\mathbf{b}$
+directly.  The solution is verified numerically at five test points:
+
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+$t$ & $u_{\mathrm{computed}}$ & $u_{\mathrm{exact}} = t^2+t$ \\
+\midrule
+$-1.0$ & $0.000\,000\,00$ & $0.000\,000\,00$ \\
+$-0.5$ & $-0.250\,000\,00$ & $-0.250\,000\,00$ \\
+$\phantom{-}0.0$ & $0.000\,000\,00$ & $0.000\,000\,00$ \\
+$\phantom{-}0.5$ & $0.750\,000\,00$ & $0.750\,000\,00$ \\
+$\phantom{-}1.0$ & $2.000\,000\,00$ & $2.000\,000\,00$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{5. The Universal Pattern}
+
+Across all three experiments the LP always returns $M^* = I_N$:
+
+\begin{center}
+\begin{tabular}{ccccc}
+\toprule
+Experiment & $N$ & Qubits & Case A & LP optimum \\
+\midrule
+1 & 4 & 2 & 16/16 & 1/16 \\
+2 & 4 & 2 & 16/16 & 1/16 \\
+3 & 8 & 3 & 64/64 & 1/64 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Why $M^* = I_N$ is always optimal.}
+The identity matrix minimises $\sum_P |c_P|$ subject to $\operatorname{Tr}(M)=N$
+because $I_N$ is the unique matrix (up to orthogonal equivalence) that concentrates
+all its Pauli weight into the identity string $I^{\otimes n}$.  Formally:
+$c_{I\cdots I}(I_N) = \operatorname{Tr}(I_N^{\otimes n}\cdot I_N)/N = 1$ and
+$c_P(I_N) = \operatorname{Tr}(P\cdot I_N)/N = \operatorname{Tr}(P)/N = 0$ for all
+non-identity $P$, since every non-identity Pauli string is traceless.
+
+\paragraph{Consequence.}
+The globally optimal Pauli count is \textbf{always 1}, regardless of the
+differential operator, domain, boundary conditions, or number of collocation
+points.  The operator-specific information is entirely absorbed by the dual
+basis $B$, which grows in complexity as $N$ increases but leaves the quantum
+representation ($M^* = I_N$, one Pauli string) unchanged.
+
+\paragraph{Implication for VQLS.}
+With $M^* = I_N$ the VQLS cost function reduces to
+$\|A\ket{\psi} - \ket{b}\|^2 / \|\ket{b}\|^2$ with $A = I$, so the variational
+circuit has nothing to optimise — $\ket{\psi} = \ket{b}$ is trivially the solution.
+This means $M^* = I_N$ is classically trivial and does not provide a quantum
+advantage.  The open question is whether there exists a \emph{non-trivial}
+class of ODEs or boundary conditions for which the LP optimum is greater than 1
+but still polynomially small in the number of qubits, which would be the regime
+where VQLS could offer a genuine speedup.
+
+\end{document}

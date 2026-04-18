@@ -221,6 +221,66 @@ The lower-left zero block that underpinned the Experiment~1 strategy is structur
 impossible in Experiment~2: any non-degenerate basis leaves the collocation rows coupled to
 $\phi_0$ and $\phi_1$.  Minimising the Pauli count therefore requires a different approach
 (e.g.\ an alternative $2+2$ row partition, a $1+3$ or $3+1$ partition, or operator
-pre-conditioning) and may not reach three Pauli strings.
+pre-conditioning) and may not reach three Pauli strings within the block-diagonal family.
+
+\subsection*{4. Global Optimum via the Basis-Change Identity}
+
+Although the lower-left block of the Case~B matrix cannot be zeroed (Section~3),
+the basis-change identity shows this structural obstacle is irrelevant for
+minimising the Pauli count.
+
+\paragraph{The identity.}
+For any operator $L$ and any polynomial basis with coefficient matrix $B$, the
+collocation matrix satisfies $M = A_{\mathrm{mono}}\,B^{\top}$, where
+$A_{\mathrm{mono}}$ is the Case~A monomial matrix.  Any invertible $M$ is
+achievable by setting $B=(A_{\mathrm{mono}}^{-1}M)^{\top}$.
+
+\paragraph{LP formulation.}
+Because $c_P = \tfrac{1}{4}\operatorname{Tr}(PM)$ is linear in the entries of $M$,
+we solve
+\begin{equation}
+    \min_{M}\;\sum_{P}|c_P(M)|
+    \quad\text{s.t.}\quad \operatorname{Tr}(M)=4,
+\end{equation}
+with all 16 entries of $M$ as free variables and slack variables $t_P\geq|c_P|$
+to linearise the absolute values.
+
+\paragraph{Result.}
+The LP finds the global optimum $M^* = I_4$, with a single Pauli string:
+\begin{equation}
+    c_{II} = 1, \qquad c_P = 0 \;\text{ for all other }P.
+\end{equation}
+
+\paragraph{Corresponding basis.}
+Applying $B=(A_{\mathrm{mono}}^{-1}\,I_4)^{\top}$ gives the basis functions
+\begin{align*}
+    \phi_0(t) &\approx  0.4525 - 0.5792\,t + 0.0475\,t^2 + 0.0792\,t^3, \\
+    \phi_1(t) &\approx  1.2764 + 0.2940\,t - 0.7764\,t^2 + 0.2060\,t^3, \\
+    \phi_2(t) &\approx -0.2218 + 0.3803\,t + 0.2218\,t^2 - 0.3803\,t^3, \\
+    \phi_3(t) &\approx -0.5070 - 0.0951\,t + 0.5070\,t^2 + 0.0951\,t^3,
+\end{align*}
+with $\det B \approx 0.107 \neq 0$.  Solving $I_4\,\mathbf{a}=\mathbf{b}$ gives
+$\mathbf{a}=\mathbf{b}$ directly; numerically this recovers
+$u(t)=t^2+t$ at all test points.
+
+\paragraph{Implication.}
+The Pauli count of the collocation matrix is \emph{independent of the differential
+operator}~$L$: for any second-order ODE on any domain with two boundary conditions
+and two interior collocation points, the globally optimal collocation matrix is
+$M^*=I_4$, achieved by a suitably chosen (operator-dependent) dual basis.  The
+structural obstruction identified in Section~3 constrains only the class of
+block-diagonal bases, not the full optimisation.
+
+\paragraph{Summary of Pauli counts.}
+\begin{center}
+\begin{tabular}{lcc}
+\hline
+Basis & Pauli strings & Notes \\
+\hline
+Case A (monomial)             & 16 & no structure exploited \\
+LP global optimum ($M^*=I_4$) &  1 & basis-change identity \\
+\hline
+\end{tabular}
+\end{center}
 
 \end{document}
