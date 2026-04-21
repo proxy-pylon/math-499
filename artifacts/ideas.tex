@@ -38,7 +38,7 @@ Force $\phi_2(\pm 1) = \phi_3(\pm 1) = 0$. This requires:
 $$C_{20}-C_{21}+C_{22}=0,\quad C_{20}+C_{21}+C_{22}=0 ;\Rightarrow; C_{21}=0,; C_{22}=-C_{20}$$
 $$C_{30}-C_{31}+C_{32}-C_{33}=0,\quad C_{30}+C_{31}+C_{32}+C_{33}=0 ;\Rightarrow; C_{31}=-C_{33},; C_{32}=-C_{30}$$
 
-So $\phi_2 = C_{20}(1-t^2)$ and $\phi_3 = (1-t^2)(C_{30}+C_{33}t)$. The matrix becomes block lower-triangular $\bigl[\begin{smallmatrix}A & 0 \ B & C\end{smallmatrix}\bigr]$, concentrating the Pauli content in identifiable blocks. The upper-right zero block kills the XI, XZ, XX, YY strings that involve off-diagonal cross-block interaction — but it leaves the lower-left block $B$ (which cannot be zero by the document's argument) contributing its own X- and Y-type strings.
+So $\phi_2 = C_{20}(1-t^2)$ and $\phi_3 = (1-t^2)(C_{30}+C_{33}t)$. The matrix becomes block lower-triangular $\bigl[\begin{smallmatrix}A & 0 \\ B & C\end{smallmatrix}\bigr]$, concentrating the Pauli content in identifiable blocks. The upper-right zero block kills the XI, XZ, XX, YY strings that involve off-diagonal cross-block interaction — but it leaves the lower-left block $B$ (which cannot be zero by the document's argument) contributing its own X- and Y-type strings.
 
 Idea 3 — Directly zero 6 specific Pauli traces
 The 6 even-Y strings with X (IX, ZX, XI, XZ, XX, YY) have traces that pair up nicely:
@@ -112,7 +112,7 @@ $$M = C \cdot B^T$$
 where $C$ is the Case A (monomial) matrix and $B$ is the basis transformation ($B_{jk}$ = coefficient of $t^k$ in $\phi_j$). For any invertible target $M$, we can set $B = C^{-T} M^T$ and get a valid basis. The physical solution $u(t)$ is unchanged.
 
 Consequence: 3 Pauli strings is always achievable
-Choose $M = I \otimes A_2$ with $A_2 = \bigl[\begin{smallmatrix}2&2\2&4\end{smallmatrix}\bigr]$ (same structure as Experiment 1). The script confirms:
+Choose $M = I \otimes A_2$ with $A_2 = \bigl[\begin{smallmatrix}2&2\\2&4\end{smallmatrix}\bigr]$ (same structure as Experiment 1). The script confirms:
 
 3 Pauli strings: II, IX, IZ
 Solution correctly recovers $u(t) = t^2 + t$
@@ -163,7 +163,7 @@ Step 7–8 in laplace_2d_tensor.py applies the Experiment 1 basis, which was opt
 The two levers
 Lever 1 — Basis change $B$: Operates on the column space (which polynomials you expand in). Acts identically on $C$, $SE$, $BE$ via right-multiplication. You can set up an L1 minimization:
 
-$$\min_B #{\text{nonzero Pauli strings of } A_\text{new}(B)} \quad \text{s.t.} \det(C \cdot B^T) \neq 0$$
+$$\min_B \#{\text{nonzero Pauli strings of } A_\text{new}(B)} \quad \text{s.t.} \det(C \cdot B^T) \neq 0$$
 
 Since each Pauli coefficient of $A_\text{new}$ is a polynomial function of the entries of $B$, this is harder than the 1D LP (it's no longer linear in $B$), but tractable for small matrices.
 
@@ -223,11 +223,11 @@ and $n$ is the qubit count.
 \begin{center}
 \begin{tabular}{lrrrrrr}
 \toprule
-Experiment & $N$ & $n$ & $L_A$ & $L_{\mathrm{LP}}$ & HT/step (A) & HT/step (LP) \
+Experiment & $N$ & $n$ & $L_A$ & $L_{\mathrm{LP}}$ & HT/step (A) & HT/step (LP) \\
 \midrule
-Exp.~1 & 4 & 2 & 16 & 1 & 768 & 3 \
-Exp.~2 & 4 & 2 & 16 & 1 & 768 & 3 \
-Exp.~3 & 8 & 3 & 64 & 1 & 16384 & 4 \
+Exp.~1 & 4 & 2 & 16 & 1 & 768 & 3 \\
+Exp.~2 & 4 & 2 & 16 & 1 & 768 & 3 \\
+Exp.~3 & 8 & 3 & 64 & 1 & 16384 & 4 \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -243,11 +243,11 @@ On a CPU simulator, the observed wall-clock time per step was:
 \begin{center}
 \begin{tabular}{lrrr}
 \toprule
-Experiment & s/step (Case A) & s/step (LP) & Speedup \
+Experiment & s/step (Case A) & s/step (LP) & Speedup \\
 \midrule
-Exp.~1 & 17.2 & 0.052 & $\approx330\times$ \
-Exp.~2 & 15.1 & 0.063 & $\approx240\times$ \
-Exp.~3 & $\sim$240 (est.) & 0.11 & $\sim$2200$\times$ \
+Exp.~1 & 17.2 & 0.052 & $\approx330\times$ \\
+Exp.~2 & 15.1 & 0.063 & $\approx240\times$ \\
+Exp.~3 & $\sim$240 (est.) & 0.11 & $\sim$2200$\times$ \\
 \bottomrule
 \end{tabular}
 \end{center}

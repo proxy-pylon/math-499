@@ -1,0 +1,539 @@
+\documentclass[aspectratio=169]{beamer}
+
+\usetheme{Madrid}
+\usecolortheme{seahorse}
+\setbeamertemplate{navigation symbols}{}
+\setbeamerfont{title}{size=\large}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{braket}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,arrows.meta,positioning,fit}
+\usepackage{xcolor}
+
+\definecolor{nublue}{RGB}{0,50,120}
+\setbeamercolor{title}{fg=white,bg=nublue}
+\setbeamercolor{frametitle}{fg=white,bg=nublue}
+\setbeamercolor{block title}{fg=white,bg=nublue}
+
+%% Simple quantum wire macro
+\newcommand{\qwire}[3]{% from x, to x, at y
+  \draw[thick] (#1,#3) -- (#2,#3);
+}
+\newcommand{\qgate}[3]{% x, y, label
+  \node[draw,thick,minimum width=1.2em,minimum height=1.2em,fill=white] at (#1,#2) {\small #3};
+}
+
+%% ----------------------------------------------------------------
+\title[Spectral Methods for VQLS]{Spectral Methods for\\Variational Quantum Linear Solvers}
+\author[A. Akimshe]{Adilet Akimshe\\[4pt]
+  {\small Advisor: Alejandro Javier Castro \quad
+         Second Reader: Adilet Otemissov}}
+\institute{Department of Mathematics\\Nazarbayev University}
+\date{April 2026}
+%% ----------------------------------------------------------------
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+%% ----------------------------------------------------------------
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+%% ----------------------------------------------------------------
+\section{Motivation}
+
+\begin{frame}{Why Should Anyone Care?}
+
+  \begin{columns}
+    \begin{column}{0.55\textwidth}
+      \textbf{The big picture}
+      \begin{itemize}
+        \item Many scientific problems reduce to solving a \emph{linear system}
+              $A\mathbf{x} = \mathbf{b}$ \medskip
+        \item Classical algorithms cost $O(N^3)$ (Gaussian elimination) or
+              $O(N^2)$ (iterative) — expensive for large $N$ \medskip
+        \item \textbf{HHL quantum algorithm}: $O(\log N)$ depth — exponential
+              speedup in $N$
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{block}{NISQ era reality}
+        Current quantum hardware is noisy.
+        \textbf{Variational Quantum Linear Solver (VQLS)} works on
+        near-term devices, but its cost depends critically on how many
+        \emph{Pauli terms} appear in $A$.
+      \end{block}
+      \vspace{4pt}
+      \begin{alertblock}{Central question}
+        Can we \emph{choose} how to discretize a differential equation
+        so that the resulting matrix has \textbf{fewer Pauli terms},
+        making VQLS faster?
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ----------------------------------------------------------------
+\section{Background}
+
+\begin{frame}{Pauli Strings — A Quick Reminder}
+
+  \textbf{Single-qubit Paulis:}
+  \[
+    I = \begin{pmatrix}1&0\\0&1\end{pmatrix},\quad
+    X = \begin{pmatrix}0&1\\1&0\end{pmatrix},\quad
+    Y = \begin{pmatrix}0&-i\\i&0\end{pmatrix},\quad
+    Z = \begin{pmatrix}1&0\\0&-1\end{pmatrix}
+  \]
+
+  \textbf{Multi-qubit Pauli strings} are tensor products, e.g.\
+  $X\otimes Z\otimes I$ for 3 qubits.
+
+  \vspace{8pt}
+  \begin{columns}
+    \begin{column}{0.52\textwidth}
+      \textbf{Key facts}
+      \begin{itemize}
+        \item $\{I,X,Y,Z\}^{\otimes n}$ is an orthogonal basis for all
+              $2^n\times 2^n$ matrices
+        \item For $n$ qubits: $4^n$ Pauli strings total
+        \item $n=2$: up to 16 strings;\quad $n=3$: up to 64
+        \item Coefficient: $c_P = \tfrac{1}{2^n}\operatorname{Tr}(A\,P)$
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Why fewer Paulis helps}
+        Each nonzero $c_P$ costs circuit evaluations in VQLS.
+        A sparser Pauli decomposition means fewer measurements,
+        less quantum overhead.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ----------------------------------------------------------------
+\begin{frame}{Collocation Discretization — Simple Example}
+
+  \textbf{Problem:} $u'' = 0$, $u(0)=0$, $u(1)=1$. \;
+  \emph{Exact solution: $u(t)=t$.}
+
+  \vspace{4pt}
+  \textbf{Spectral collocation} ($N=4$, monomial basis $\{1,t,t^2,t^3\}$):
+  \begin{enumerate}
+    \item Nodes: boundaries $t=0,1$ and interior nodes $t=\tfrac{1}{3},\tfrac{2}{3}$
+    \item Write $u(t)\approx c_0+c_1 t+c_2 t^2+c_3 t^3$
+    \item Enforce BCs at rows 0--1; enforce $u''=0$ at rows 2--3
+  \end{enumerate}
+
+  \[
+    \underbrace{\begin{pmatrix}
+      1 & 0 & 0 & 0 \\
+      1 & 1 & 1 & 1 \\
+      0 & 0 & 2 & 2 \\
+      0 & 0 & 2 & 4
+    \end{pmatrix}}_{A_{\rm mono}}
+    \begin{pmatrix}c_0\\c_1\\c_2\\c_3\end{pmatrix}
+    = \begin{pmatrix}0\\1\\0\\0\end{pmatrix}
+  \]
+
+  \vspace{2pt}
+  \begin{alertblock}{}
+    $A_{\rm mono}$ uses \textbf{all 16 Pauli strings} ($4^2=16$ for 2 qubits).
+    Can we change basis to get fewer?
+  \end{alertblock}
+\end{frame}
+
+%% ----------------------------------------------------------------
+\begin{frame}{Experiment 1 — Results}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \includegraphics[page=2,width=\textwidth,trim=20 20 20 20,clip]{experiment1.pdf}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \includegraphics[page=3,width=\textwidth,trim=20 20 20 20,clip]{experiment1.pdf}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ----------------------------------------------------------------
+\begin{frame}{Variational Quantum Linear Solver (VQLS)}
+
+  \begin{columns}
+    \begin{column}{0.52\textwidth}
+      \textbf{Goal:} solve $A\ket{x} = \ket{b}$ on a NISQ device.
+
+      \vspace{6pt}
+      \textbf{Algorithm loop:}
+      \begin{enumerate}
+        \item Prepare ansatz $\ket{\psi(\boldsymbol\theta)}=V(\boldsymbol\theta)\ket{0}$
+        \item Evaluate cost $C(\boldsymbol\theta)=1-\dfrac{|\langle b|A|\psi\rangle|^2}
+              {\langle\psi|A^\dagger A|\psi\rangle}$
+        \item Update $\boldsymbol\theta$ by gradient descent
+        \item Repeat until $C\approx 0$
+      \end{enumerate}
+
+      \vspace{6pt}
+      % Hardware-efficient ansatz diagram (manual)
+      \begin{center}
+      \begin{tikzpicture}[scale=0.95,
+        gate/.style={draw,thick,minimum width=1.6em,minimum height=1.4em,fill=white,font=\scriptsize}
+      ]
+        \draw[thick](0,1)--(5.2,1); \draw[thick](0,0)--(5.2,0);
+        \node[left,font=\scriptsize] at (0,1) {$|0\rangle$};
+        \node[left,font=\scriptsize] at (0,0) {$|0\rangle$};
+        \node[gate] at (0.8,1) {$R_y(\theta_1)$};
+        \node[gate] at (0.8,0) {$R_y(\theta_2)$};
+        % CNOT
+        \fill (2.4,1) circle (2.5pt);
+        \draw[thick](2.4,1)--(2.4,0);
+        \draw[thick](2.4,0) circle (4pt);
+        \draw[thick](2.4,0)+(0,4pt)--(2.4,0)+(-4pt,0pt);
+        \draw[thick](2.4,0)+(0,4pt)--(2.4,0)+(4pt,0pt);
+        \node[gate] at (3.8,1) {$R_y(\theta_3)$};
+        \node[gate] at (3.8,0) {$R_y(\theta_4)$};
+      \end{tikzpicture}
+      \vspace{1pt}
+      {\scriptsize Hardware-efficient ansatz (2 qubits)}
+      \end{center}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Analogy: supervised ML}
+        \renewcommand{\arraystretch}{1.1}
+        \begin{tabular}{ll}
+          ML & VQLS \\ \hline
+          Neural net & Quantum circuit \\
+          Weights $\boldsymbol\theta$ & Gate angles \\
+          Loss & Cost $C$ \\
+          SGD step & Gradient step \\
+          Forward pass & Circuit evaluation
+        \end{tabular}
+      \end{block}
+
+      \vspace{4pt}
+      \textbf{Two bottlenecks:}
+      \begin{enumerate}
+        \item Circuit overhead: $O(L^2 n)$ circuits/step
+        \item Ansatz expressibility
+      \end{enumerate}
+      \smallskip
+      Our work attacks \textbf{bottleneck 1}.
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ----------------------------------------------------------------
+\begin{frame}{The Pauli Overhead Problem}
+
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      Any $2^n \times 2^n$ matrix decomposes as
+      \[
+        A = \sum_{P \in \{I,X,Y,Z\}^{\otimes n}} c_P\, P,
+        \quad c_P = \tfrac{1}{2^n}\operatorname{Tr}(A\,P).
+      \]
+      VQLS evaluates $\langle b|A|\psi\rangle$ via \emph{Hadamard tests} —
+      one circuit per Pauli pair.
+
+      \vspace{6pt}
+      \textbf{Cost per gradient step:}
+      \[
+        \#\text{circuits} = L^2(n+1),
+      \]
+      where $L$ = number of nonzero Pauli strings.
+
+      \vspace{6pt}
+      \begin{itemize}
+        \item $N=4$, all Paulis: $16^2 \cdot 3 = \mathbf{768}$ circuits/step
+        \item $N=8$, all Paulis: $64^2 \cdot 4 = \mathbf{16{,}384}$ circuits/step
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      % Manual Hadamard test circuit
+      \begin{center}
+      \begin{tikzpicture}[scale=1.0,
+        gate/.style={draw,thick,minimum width=1.6em,minimum height=1.4em,fill=white,font=\small},
+        meter/.style={draw,thick,minimum width=1.6em,minimum height=1.4em,fill=white,font=\scriptsize}
+      ]
+        \draw[thick] (0,1) -- (4.4,1);
+        \draw[thick] (0,0) -- (4.4,0);
+        \node[left,font=\small] at (0,1) {Anc $|0\rangle$};
+        \node[left,font=\small] at (0,0) {Sys $|\psi\rangle$};
+        \node[gate] at (0.8,1) {$H$};
+        \fill (2.0,1) circle (2.5pt);
+        \draw[thick] (2.0,1) -- (2.0,0);
+        \node[gate] at (2.0,0) {$U$};
+        \node[gate] at (3.2,1) {$H$};
+        \node[meter] at (4.0,1) {$\boxminus$};
+      \end{tikzpicture}
+      \vspace{2pt}
+
+      \small Hadamard test (one per Pauli term)
+      \end{center}
+
+      \vspace{6pt}
+      \begin{block}{Bottom line}
+        $L \propto N^2$ terms $\Rightarrow$ $L^2 \propto N^4$ circuits per step.\\
+        \textbf{Halving $L$ gives a $4\times$ speedup.}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ----------------------------------------------------------------
+\section{Main Results}
+
+\begin{frame}{The Basis-Change Identity}
+
+  \begin{block}{Key observation}
+    The collocation matrix in \emph{any} polynomial basis $\{\phi_j\}$ is
+    \[
+      A_C = A_{\rm mono}\, C^\top,
+    \]
+    where $C_{jk}$ = coefficient of $t^k$ in $\phi_j$.
+    The physical solution $u$ is \textbf{independent of the basis choice.}
+  \end{block}
+
+  \vspace{8pt}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \textbf{Consequence:}
+      \begin{itemize}
+        \item $C = I$ gives the monomial basis (Case A) with up to $4^n$ Pauli strings
+        \item Any invertible $C$ gives a valid discretization
+        \item The Pauli coefficients of $A_C$ are \emph{linear} in the entries of $C$
+        \item[$\Rightarrow$] \textbf{Finding the sparsest $A_C$ is a linear program}
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{alertblock}{LP for Pauli minimization}
+        \vspace{-4pt}
+        \[
+          \min_{C,\,\mathbf{t}}\;\sum_{P} t_P
+          \quad\text{s.t.}\quad |c_P(C)| \le t_P,\;\; \det C \neq 0
+        \]
+        Each $c_P$ is linear in $C$, so this is a \textbf{linear program}.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ----------------------------------------------------------------
+\begin{frame}{Global LP vs.\ Monic LP}
+
+  \begin{columns}
+    \begin{column}{0.48\textwidth}
+      \textbf{Global LP} — optimize all $N^2$ entries of $C$:
+      \begin{itemize}
+        \item Always finds $A^* = I_N$
+        \item Only 1 Pauli string ($I^{\otimes n}$)
+        \item \textcolor{red}{Problem:} $I_N \ket{x}=\ket{b}$ means $\ket{x}=\ket{b}$
+              — trivially classical, \textbf{no quantum advantage}
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \textbf{Monic LP} — restrict $C$ to lower-triangular, unit diagonal:
+      \[
+        C = \begin{pmatrix}1&&&\\*&1&&\\*&*&1&\\*&*&*&1\end{pmatrix}
+      \]
+      \begin{itemize}
+        \item Only $\tfrac{N(N-1)}{2}$ free variables
+        \item $A^* \neq I_N$ — system stays \textcolor{nublue}{non-trivial}
+        \item No extra normalization constraint needed
+        \item Moderate but genuine Pauli reduction
+      \end{itemize}
+    \end{column}
+  \end{columns}
+
+  \vspace{6pt}
+  \begin{block}{The monic LP is the principled middle ground}
+    Reduces circuit overhead substantially while preserving a meaningful quantum computation.
+  \end{block}
+\end{frame}
+
+%% ----------------------------------------------------------------
+\begin{frame}{Results: Pauli String Counts}
+
+  \begin{center}
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabular}{lcccc}
+    \toprule
+    Experiment & $N$ & Case A & Monic LP & Global LP \\
+    \midrule
+    $u''=0$, $[0,1]$                    & 4 & 16 & \textbf{6}  & 1 \\
+    $u''+u'+u=f$, $[-1,1]$             & 4 & 16 & \textbf{10} & 1 \\
+    $u''+u'+u=f$, $[-1,1]$ (8-point)   & 8 & 64 & \textbf{36} & 1 \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+
+  \vspace{8pt}
+  \begin{columns}
+    \begin{column}{0.48\textwidth}
+      \textbf{Hadamard tests per gradient step:}
+      \renewcommand{\arraystretch}{1.2}
+      \begin{center}
+      \begin{tabular}{lccc}
+        \toprule
+        & Case A & Monic LP & Global LP \\
+        \midrule
+        $N=4$ & 768 & 108 & 3 \\
+        $N=8$ & 16\,384 & 5\,184 & 4 \\
+        \bottomrule
+      \end{tabular}
+      \end{center}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Key takeaway}
+        Monic LP gives a $\mathbf{7\times}$ speedup for $N=4$
+        and $\mathbf{3.2\times}$ for $N=8$ in circuit evaluations,
+        without collapsing the quantum problem to a classical one.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ----------------------------------------------------------------
+\begin{frame}{Timing Comparison Across System Sizes}
+
+  Wall-clock time per VQLS gradient step on a CPU simulator
+  (PennyLane, \texttt{lightning.qubit}).
+
+  \vspace{6pt}
+  \begin{center}
+  \renewcommand{\arraystretch}{1.4}
+  \begin{tabular}{lccccccc}
+    \toprule
+    Size & $n$ & \multicolumn{2}{c}{Case A (Monomial)} &
+                 \multicolumn{2}{c}{Monic LP} &
+                 \multicolumn{2}{c}{Global LP ($I_N$)} \\
+    \cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}
+         &   & Paulis & s/step & Paulis & s/step & Paulis & s/step \\
+    \midrule
+    $4\times 4$   & 2 & 16  & 17.2         & 6   & 1.3          & 1 & 0.05  \\
+    $8\times 8$   & 3 & 64  & $\sim$240    & 36  & $\sim$75     & 1 & 0.11  \\
+    $16\times 16$ & 4 & 256 & $>$3000\,*   & 112 & $\sim$920\,* & 1 & $\sim$0.3 \\
+    \bottomrule
+    \multicolumn{8}{l}{\footnotesize *Extrapolated from $N^4\log N$ scaling; Case~A at $N=16$ is not feasible on CPU.}
+  \end{tabular}
+  \end{center}
+
+  \vspace{4pt}
+  \begin{columns}
+    \begin{column}{0.48\textwidth}
+      \textbf{Scaling:} Cost $\sim L^2 n \sim N^4 \log N$ \\
+      Every doubling of $N$ increases Case A cost by ${\approx}16\times$.
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{LP speedup grows with problem size}
+        $N=4$: ${\approx}13\times$ \quad
+        $N=8$: ${\approx}3.2\times$ \\
+        $N=16$: ${\approx}3.3\times$ (projected)
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ----------------------------------------------------------------
+\begin{frame}{Convergence and Ansatz Limitation}
+
+  \begin{columns}
+    \begin{column}{0.50\textwidth}
+      \textbf{Experiment 1} ($u''=0$, Global LP):
+      \begin{itemize}
+        \item Case A: cost $0.183$ after 20 steps (${\approx}344$\,s). Stuck.
+        \item Global LP: converges to ${\approx}0$ in \textbf{13 steps} ($0.7$\,s)
+      \end{itemize}
+
+      \vspace{6pt}
+      \textbf{Experiment 2} ($u''+u'+u=f$, Global LP):
+      \begin{itemize}
+        \item Case A: stuck at $0.187$ after 20 steps
+        \item Global LP: drops to $0.025$ in \textbf{4 steps} ($0.25$\,s)
+        \item Plateau at $0.025$ = ansatz expressibility limit
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{block}{Two independent bottlenecks}
+        \begin{enumerate}
+          \item \textbf{Circuit overhead:} $O(L^2 n)$ Hadamard tests/step\\
+                \emph{Fixed by LP preprocessing}
+          \item \textbf{Ansatz expressibility:} circuit must represent $|x\rangle$\\
+                \emph{Not affected by Pauli count — requires deeper ansatz}
+        \end{enumerate}
+      \end{block}
+      \vspace{4pt}
+      Both LP formulations share the same ansatz plateau —
+      the overhead reduction is the sole benefit.
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ----------------------------------------------------------------
+\section{Conclusion}
+
+\begin{frame}{Conclusion}
+
+  \begin{columns}
+    \begin{column}{0.55\textwidth}
+      \textbf{What we showed:}
+      \begin{enumerate}
+        \item The collocation matrix is freely adjustable via basis change
+              without altering the solution — enabling LP-based Pauli minimization
+        \item \textbf{Global LP} always finds $A^*=I_N$ (1 Pauli), but
+              makes the problem classically trivial
+        \item \textbf{Monic LP} finds a non-trivial $A^*\neq I_N$ with substantially
+              fewer Paulis: $7\times$ speedup at $N=4$, growing with $N$
+        \item Two independent bottlenecks govern VQLS: circuit overhead
+              (cured by LP) and ansatz depth (separate issue)
+        \item In 1D, reducing Paulis removes quantum difficulty.
+              \textbf{Multi-D PDEs} are the natural next target
+      \end{enumerate}
+    \end{column}
+    \begin{column}{0.41\textwidth}
+      \begin{block}{Practical recommendation}
+        For VQLS implementations on near-term hardware: apply the
+        \textbf{monic LP preprocessing} before solving.
+        Costs milliseconds of classical LP time; saves orders-of-magnitude
+        in quantum circuit evaluations.
+      \end{block}
+
+      \vspace{6pt}
+      \begin{block}{Future work}
+        \begin{itemize}
+          \item 2D Laplacian: joint basis-change LP over shared $B^\top$
+          \item Chebyshev/Legendre node optimization
+          \item Deeper ansatz to overcome expressibility plateau
+          \item Noise analysis on real NISQ hardware
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ----------------------------------------------------------------
+\begin{frame}[plain]
+  \vfill
+  \begin{center}
+    {\Large Thank you!}\\[12pt]
+    {\large Questions?}\\[20pt]
+    \hrule
+    \vspace{8pt}
+    {\small
+    Adilet Akimshe \quad|\quad
+    Nazarbayev University, Department of Mathematics\\[4pt]
+    Advisor: Alejandro Javier Castro \quad
+    Second Reader: Adilet Otemissov
+    }
+  \end{center}
+  \vfill
+\end{frame}
+
+\end{document}

@@ -1,0 +1,256 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{braket}
+
+\begin{document}
+
+\section*{Monic LP: A Middle Ground for Pauli Reduction}
+
+\subsection*{1. The Problem with the Two Extremes}
+
+Experiments~1--3 identified two extreme strategies for choosing the collocation
+matrix:
+
+\begin{itemize}
+    \item \textbf{Case A (monomial basis).}  The matrix $A_{\mathrm{mono}}$ saturates
+          all $4^n$ Pauli strings.  For $N=4$ this means 16 strings and
+          $L^2(n+1) = 768$ Hadamard tests per VQLS gradient step; for $N=8$ it means
+          64 strings and $16{,}384$ tests per step.
+
+    \item \textbf{Global LP ($M^* = I_N$).}  The unrestricted LP over all $N^2$
+          entries of $M$ always finds $M^* = I_N$, requiring only 1 Pauli string and
+          $n+1$ tests per step.  However, $M^* = I_N$ turns the VQLS system
+          $I_N\ket{\psi} = \ket{b}$ into the trivial problem $\ket{\psi} = \ket{b}$,
+          which is solvable classically (or by a single state-preparation circuit) and
+          offers no quantum advantage.
+\end{itemize}
+
+This raises a natural question: \emph{can we reduce the Pauli count substantially,
+while keeping the quantum system non-trivial?}  The monic LP provides an affirmative
+answer.
+
+\subsection*{2. The Monic LP Formulation}
+
+Recall the basis-change identity $M = A_{\mathrm{mono}}\,C^{\top}$, where $C$ is the
+coefficient matrix of the polynomial basis ($C_{jk}$ is the coefficient of $t^k$ in
+$\phi_j$).  The monomial basis corresponds to $C = I_N$.
+
+\paragraph{Restriction.}
+We restrict $C$ to be \emph{lower-triangular with unit diagonal}:
+\begin{equation}
+    C_{jj} = 1 \text{ for all } j,
+    \qquad
+    C_{jk} = 0 \text{ for } k > j,
+    \qquad
+    C_{jk} \text{ free for } k < j.
+\end{equation}
+This is called a \emph{monic} basis: each $\phi_j$ is a degree-$j$ polynomial with
+leading coefficient~1.  The free variables are the $\tfrac{N(N-1)}{2}$ strictly
+lower-triangular entries.
+
+\paragraph{Linearity.}
+Writing $C = I + \Delta$ where $\Delta$ is strictly lower-triangular, the collocation
+matrix becomes $M = A_{\mathrm{mono}}\,(I+\Delta)^{\top} = A_{\mathrm{mono}} + A_{\mathrm{mono}}\,\Delta^{\top}$.
+Since each Pauli coefficient is $c_P = \tfrac{1}{N}\operatorname{Tr}(P\,M)$ and $M$
+is affine in $\Delta$, we have
+\begin{equation}
+    c_P(\Delta) = c_P^0 + \mathbf{j}_P^{\top}\,\mathbf{x},
+\end{equation}
+where $c_P^0$ are the Case~A Pauli coefficients (the baseline), $\mathbf{x}$ is the
+vector of free entries of $\Delta$, and $\mathbf{j}_P$ is a row of the Jacobian matrix
+$J$ computed from the monomial collocation matrix.
+
+\paragraph{LP.}
+Introduce slack variables $t_P \geq |c_P|$ and minimise:
+\begin{equation}
+    \min_{\mathbf{x},\,\mathbf{t}}\;\sum_{P} t_P
+    \qquad\text{s.t.}\quad
+    J\mathbf{x} + \mathbf{c}^0 \leq \mathbf{t},
+    \quad
+    -J\mathbf{x} - \mathbf{c}^0 \leq \mathbf{t},
+    \quad
+    \mathbf{t} \geq 0,
+    \quad
+    \mathbf{x} \text{ free}.
+    \label{eq:monic-lp}
+\end{equation}
+The LP has $\tfrac{N(N-1)}{2} + 4^n$ variables and $2\cdot 4^n$ inequality constraints.
+
+\paragraph{No normalization constraint required.}
+The global LP needs the equality $\operatorname{Tr}(M) = N$ to prevent $M \to 0$.
+The monic LP does not: fixing $C_{jj}=1$ makes $C$ always invertible, so $M =
+A_{\mathrm{mono}}\,C^{\top}$ is always invertible (trace cannot be made zero).
+This is a structural simplification relative to the global LP.
+
+\subsection*{3. Results}
+
+Table~\ref{tab:monic} shows the Pauli counts and VQLS Hadamard-test overhead for
+all three experiments.
+
+\begin{table}[h]
+\centering
+\caption{Pauli strings and Hadamard tests per VQLS step ($\mathrm{HT/step} = L^2(n+1)$).}
+\label{tab:monic}
+\begin{tabular}{lccccc}
+\toprule
+Experiment & $N$ & $n$ & Case A & Monic LP & Global LP \\
+\midrule
+Exp.~1: $u''=0$ on $[0,1]$                  & 4 & 2 & 16/16 & \textbf{6/16} & 1/16 \\
+Exp.~2: $u''+u'+u=f$ on $[-1,1]$            & 4 & 2 & 16/16 & \textbf{10/16} & 1/16 \\
+Exp.~3: $u''+u'+u=f$ on $[-1,1]$ (scaled)  & 8 & 3 & 64/64 & \textbf{36/64} & 1/64 \\
+\midrule
+ & & & & & \\[-8pt]
+Exp.~1 HT/step & & & 768 & \textbf{108} & 3 \\
+Exp.~2 HT/step & & & 768 & \textbf{300} & 3 \\
+Exp.~3 HT/step & & & 16{,}384 & \textbf{5{,}184} & 4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Monic basis for Experiment~1.}
+The LP returns the basis coefficient matrix
+\begin{equation}
+C^* =
+\begin{bmatrix}
+1 & 0 & 0 & 0 \\
+\tfrac{1}{2} & 1 & 0 & 0 \\
+0 & -1 & 1 & 0 \\
+0 & \tfrac{1}{4} & -\tfrac{5}{4} & 1
+\end{bmatrix},
+\end{equation}
+giving six nonzero Pauli strings: $\{II, IX, IY, ZI, ZY, ZZ\}$.  The corresponding
+collocation system is verified to recover the exact solution $u(t) = t$ at all test
+points.
+
+\paragraph{Why monic LP cannot reach the 3-Pauli Case~B solution.}
+Experiment~1 showed that the analytical block-diagonal strategy achieves 3 Pauli
+strings with a basis whose coefficient matrix has diagonal $(C_{00}, C_{11}, C_{22},
+C_{33}) = (2, 2, 1, 1)$.  Normalising this to a unit diagonal by dividing each row
+by its leading coefficient gives a monic matrix, but the resulting $M$ has
+\emph{six} nonzero Pauli strings---identical to the monic LP optimum.  The 3-Pauli
+solution is therefore inaccessible within the unit-diagonal family; it requires a
+non-monic scaling of the diagonal.  This confirms that the monic LP searches a
+strictly smaller space than the analytical Case~B construction.
+
+\paragraph{Experiment~3 basis.}
+For $N=8$ the monic LP has 28 free variables and finds 36 out of 64 Pauli strings,
+reducing HT/step from 16{,}384 to 5{,}184.  All 36 nonzero Paulis are
+three-qubit strings; the system is verified numerically at five test points.
+
+\subsection*{4. Is There a Genuine Quantum Speedup?}
+
+\paragraph{Hadamard-test reduction.}
+The VQLS local cost function requires $L^2(n+1)$ Hadamard tests per gradient
+evaluation, where $L$ is the number of nonzero Pauli strings.  Monic LP reduces $L$
+from 16 to 6 for Experiment~1 (a $7.1\times$ reduction in HT/step) and from 64 to
+36 for Experiment~3 (a $3.2\times$ reduction).  These are genuine reductions in
+quantum circuit evaluations.
+
+\paragraph{Non-triviality.}
+Crucially, the monic LP result $M^* \neq I_N$, so the VQLS system $M^*\ket{\psi}
+= \ket{b}$ is \emph{not} classically trivial.  Unlike the global LP, the monic
+LP does not collapse the quantum problem into a state-preparation task.
+
+\paragraph{Absolute vs.\ relative advantage.}
+For the small sizes $N = 4, 8$ studied here, any $4\times 4$ or $8\times 8$ linear
+system is trivially solvable classically in $O(1)$ time, so no VQLS formulation at
+this scale offers a quantum advantage.  The question of quantum speedup only becomes
+meaningful at much larger $N$, where quantum linear solvers are hypothesised to offer
+an exponential advantage over classical methods (e.g.\ HHL with $O(\log N)$ depth).
+At those scales the Hadamard-test reduction from the monic LP---a polynomial factor of
+$L_A^2 / L_{\mathrm{monic}}^2$---would translate directly to a constant-factor
+speedup in the quantum circuit overhead.
+
+\paragraph{Convergence.}
+VQLS was run for 150 gradient steps on each monic-LP system.  For Experiment~1 the
+cost function converges to zero (the ansatz can represent $\ket{b}$).  For
+Experiments~2 and~3 the cost plateaus near $0.025$ and $0.012$ respectively---the
+same plateau observed for the global LP.  This plateau is not caused by Pauli
+overhead; it is an \emph{ansatz limitation}: the single-layer $R_Y$ circuit with $n$
+parameters cannot express the exact solution state $\ket{b}$ for general $b$.  Both
+LP strategies share this bottleneck equally.
+
+\subsection*{5. Is the Monic LP Easier to Solve?}
+
+\paragraph{Problem size.}
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+ & Monic LP & Global LP \\
+\midrule
+Free variables    & $\tfrac{N(N-1)}{2}$ & $N^2$ \\
+Slack variables   & $4^n = N^2$         & $4^n = N^2$ \\
+Equality constraints & 0                & 1 ($\operatorname{Tr}(M)=N$) \\
+Inequality constraints & $2\cdot 4^n$   & $2\cdot 4^n$ \\
+\midrule
+Total variables ($N=4$) & 22 & 32 \\
+Total variables ($N=8$) & 92 & 128 \\
+\bottomrule
+\end{tabular}
+\end{center}
+The monic LP is modestly smaller---approximately $\tfrac{3}{4}$ the size of the
+global LP in terms of variables---but the difference is not asymptotically significant.
+Both are LPs of size $O(N^2)$ and both are solved in milliseconds by the HiGHS
+simplex method at the scales considered here.
+
+\paragraph{Structural simplicity.}
+The monic LP is structurally simpler in one important respect: it requires
+\emph{no normalization constraint}.  The unit-diagonal fixing ensures the basis is
+always non-degenerate, so the scale of $M$ cannot collapse to zero.  The global LP
+requires the explicit equality $\operatorname{Tr}(M) = N$ to prevent this collapse;
+without it, the LP drives all Pauli coefficients to zero by shrinking $M \to 0$.
+The monic formulation avoids this degeneracy by construction.
+
+\paragraph{Solution quality.}
+The global LP uniformly achieves 1 Pauli string regardless of the operator or domain.
+The monic LP is operator-dependent and consistently worse:
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+ & Case A & Monic LP & Global LP \\
+\midrule
+Pauli strings ($N=4$, Exp.~1) & 16 & 6 & 1 \\
+Pauli strings ($N=4$, Exp.~2) & 16 & 10 & 1 \\
+Pauli strings ($N=8$, Exp.~3) & 64 & 36 & 1 \\
+\bottomrule
+\end{tabular}
+\end{center}
+The global LP's uniform optimum (always $M^* = I_N$, always 1 Pauli) is a consequence
+of the fact that $I_N$ minimises $\sum_P|c_P|$ subject to $\operatorname{Tr}(M)=N$ for
+\emph{any} matrix: non-identity Paulis are traceless, so $c_P(I_N)=0$ for all $P\neq
+I^{\otimes n}$.  The monic LP, by contrast, cannot reach $I_N$ (since $C$ must be
+lower-triangular with unit diagonal, and $A_{\mathrm{mono}}^{-T}$ is not of this form
+in general), so its optimum depends on the specific operator and collocation points.
+
+\subsection*{6. Summary}
+
+The monic LP is a genuine middle ground between Case~A and the global LP.
+
+\begin{itemize}
+    \item \textbf{Easier to formulate} than the global LP: no normalization
+          constraint, fewer variables, and a natural geometric interpretation (each
+          basis function is a monic polynomial).
+    \item \textbf{Not dramatically easier computationally}: both are $O(N^2)$-variable
+          LPs solved in milliseconds.  The monic LP has $\tfrac{N(N-1)}{2}$ vs.\
+          $N^2$ free variables, a factor of $\approx 2$ difference.
+    \item \textbf{Provides moderate Hadamard-test speedup}: $7\times$ for Experiment~1,
+          $2.6\times$ for Experiment~2, $3.2\times$ for Experiment~3.
+    \item \textbf{Preserves quantum non-triviality}: $M^* \neq I_N$, so the quantum
+          task is not classically solvable by inspection.
+    \item \textbf{Cannot recover all analytical solutions}: the 3-Pauli Case~B
+          solution from Experiment~1 requires non-unit diagonal coefficients and lies
+          outside the monic family.  The monic LP optimum for Experiment~1 is 6
+          Pauli strings, not 3.
+\end{itemize}
+
+The global LP remains the right choice if minimising Pauli count is the sole objective,
+but its result ($M^* = I_N$) is classically trivial and therefore not useful for
+demonstrating quantum advantage.  The monic LP offers a principled way to reduce
+quantum circuit overhead while preserving a non-trivial quantum computation.  Whether
+this overhead reduction is sufficient to yield a practical quantum advantage depends
+on the problem size and the available ansatz depth---questions left for future work.
+
+\end{document}

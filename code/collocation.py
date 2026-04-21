@@ -259,6 +259,112 @@ def minimize_pauli_l1(n_interior: int, alpha, beta, gamma, t_L=-1, t_R=1):
 # Experiments
 # ---------------------------------------------------------------------------
 
+def minimize_pauli_l1_monic(n_interior: int, alpha, beta, gamma, t_L=-1, t_R=1):
+    """Minimize Pauli L1 norm with monic lower-triangular basis.
+
+    Parameterises the basis coefficient matrix C as lower-triangular with ones
+    on the diagonal (C[j,j]=1, C[j,k]=0 for k>j), and optimises the
+    N*(N-1)/2 strictly lower-triangular entries.
+
+    The collocation matrix is M = M_A @ C^T  where M_A is the monomial
+    (Case A) matrix.  Since M is affine in the free entries of C, the Pauli
+    coefficients are affine too: c_P(C) = c_P^0 + J_x @ x, where
+        c_P^0 = c_P(M_A)   (monomial baseline)
+        J_x[p, m] = sum_row J[p, row*N+j_m] * M_A[row, k_m]
+        x_m = C[j_m, k_m]   for  k_m < j_m  (the free variables)
+
+    LP:
+        min   sum_P t_P
+        s.t.  J_x x + c_P^0 <=  t       (t_P >= +c_P(C))
+             -J_x x - c_P^0 <=  t       (t_P >= -c_P(C))
+              t >= 0,  x free
+
+    No Tr(M)=N constraint is needed: the diagonal of C is already fixed to 1,
+    so the scale does not collapse.
+
+    Returns
+    -------
+    M_opt  : np.ndarray (N x N)  optimal collocation matrix
+    C_opt  : np.ndarray (N x N)  basis coefficient matrix (phi_j = sum_k C[j,k] t^k)
+    result : OptimizeResult
+    """
+    N = n_interior + 2
+    M_A = build_collocation_matrix(n_interior, alpha, beta, gamma, t_L, t_R)
+    J, _ = _pauli_jacobian(N)
+    n_pauli = J.shape[0]
+
+    # Baseline Pauli coefficients (C = I, M = M_A)
+    c0 = J @ M_A.flatten()
+
+    # Free variables: strictly lower-triangular entries (j, k) with k < j
+    free_vars = [(j, k) for j in range(N) for k in range(j)]
+    n_free = len(free_vars)
+
+    # Jacobian of c_P w.r.t. free variables
+    # dM/dx_m: column j_m changes by M_A[:, k_m]
+    # dc_P/dx_m = J[:, row*N+j_m] @ M_A[row, k_m] summed over row
+    J_x = np.zeros((n_pauli, n_free))
+    for m, (jm, km) in enumerate(free_vars):
+        for row in range(N):
+            J_x[:, m] += J[:, row * N + jm] * M_A[row, km]
+
+    # LP
+    c_obj = np.concatenate([np.zeros(n_free), np.ones(n_pauli)])
+    A_ub = np.vstack([
+        np.hstack([ J_x, -np.eye(n_pauli)]),
+        np.hstack([-J_x, -np.eye(n_pauli)]),
+    ])
+    b_ub = np.concatenate([-c0, c0])
+    bounds = [(None, None)] * n_free + [(0, None)] * n_pauli
+
+    result = linprog(c_obj, A_ub=A_ub, b_ub=b_ub, bounds=bounds, method='highs')
+
+    # Reconstruct C and M
+    C_opt = np.eye(N)
+    for m, (j, k) in enumerate(free_vars):
+        C_opt[j, k] = result.x[m]
+
+    M_opt = M_A @ C_opt.T
+    return M_opt, C_opt, result
+
+
+def compare_reductions(n_interior: int, alpha, beta, gamma, t_L=-1, t_R=1, name=""):
+    """Print a comparison table: monomial | monic LP | global LP."""
+    N = n_interior + 2
+    n_qubits = int(round(np.log2(N)))
+
+    M_A = build_collocation_matrix(n_interior, alpha, beta, gamma, t_L, t_R)
+    n_A, _ = count_pauli_strings(M_A)
+
+    M_monic, C_monic, res_monic = minimize_pauli_l1_monic(
+        n_interior, alpha, beta, gamma, t_L, t_R)
+    n_monic, paulis_monic = count_pauli_strings(M_monic)
+
+    M_lp, _, _ = minimize_pauli_l1(
+        n_interior, alpha, beta, gamma, t_L, t_R)
+    n_lp, _ = count_pauli_strings(M_lp)
+
+    total = 4 ** n_qubits
+    header = f"Pauli reduction — {name}  (N={N}, {n_qubits} qubits)"
+    print("=" * 60)
+    print(header)
+    print("=" * 60)
+    print(f"  {'Method':<22} {'Pauli strings':>14}  {'HT/step':>10}")
+    print(f"  {'-'*22}  {'-'*12}  {'-'*10}")
+    ht_A     = n_A**2 * (n_qubits + 1)
+    ht_monic = n_monic**2 * (n_qubits + 1)
+    ht_lp    = n_lp**2 * (n_qubits + 1)
+    print(f"  {'Case A (monomial)':<22} {f'{n_A}/{total}':>14}  {ht_A:>10}")
+    print(f"  {'Monic LP':<22} {f'{n_monic}/{total}':>14}  {ht_monic:>10}")
+    print(f"  {'Global LP (M*=I)':<22} {f'{n_lp}/{total}':>14}  {ht_lp:>10}")
+    print(f"\n  Monic LP nonzero Paulis: {list(paulis_monic.keys())}")
+    print(f"  Monic LP L1 objective  : {res_monic.fun:.6f}")
+    print(f"  Monic C (lower-tri):")
+    for j in range(N):
+        vals = [f"{C_monic[j, k]:+.4f}" for k in range(N)]
+        print(f"    phi_{j}: {vals}")
+
+
 def experiment1():
     """u'' = 0 on [0,1], u(0)=0, u(1)=1.  Expected solution: u(t)=t."""
     print("=" * 60)
@@ -417,3 +523,12 @@ if __name__ == '__main__':
                   label="Experiment 2 — u''+u'+u=f on [-1,1]")
     print()
     experiment3()
+    print()
+    compare_reductions(n_interior=2, alpha=1, beta=0, gamma=0, t_L=0, t_R=1,
+                       name="Exp 1 — u''=0 on [0,1]")
+    print()
+    compare_reductions(n_interior=2, alpha=1, beta=1, gamma=1, t_L=-1, t_R=1,
+                       name="Exp 2 — u''+u'+u=f on [-1,1]")
+    print()
+    compare_reductions(n_interior=6, alpha=1, beta=1, gamma=1, t_L=-1, t_R=1,
+                       name="Exp 3 — u''+u'+u=f on [-1,1], N=8")

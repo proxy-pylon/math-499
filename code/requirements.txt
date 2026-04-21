@@ -1,2 +1,6 @@
 numpy
 sympy
+scipy
+pennylane>=0.44
+pennylane-lightning
+matplotlib
