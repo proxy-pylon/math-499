@@ -28,7 +28,7 @@
 \begin{document}
 
 \begin{abstract}
-We investigate whether spectral discretization methods can reduce the number of Pauli terms required to represent differential operators in Variational Quantum Linear Solvers (VQLS). Solving linear systems of equations is fundamental to scientific computing, and VQLS offers a promising near-term quantum approach compatible with Noisy Intermediate-Scale Quantum (NISQ) devices. A key bottleneck in VQLS efficiency is the Pauli term count in the decomposition of the system matrix, which directly determines measurement overhead and circuit complexity. While finite difference discretizations yield sparse matrices, spectral methods based on Chebyshev and Legendre polynomials produce structured dense matrices whose Pauli decomposition properties are less understood in the quantum context. Through numerical experiments on one- and two-dimensional differential operators, we compare Pauli term counts, VQLS convergence, and circuit complexity across discretization strategies. Our results provide practical guidance for choosing discretization methods in quantum linear solving algorithms and contribute to identifying problem structures favorable for near-term quantum advantage.
+We investigate how the choice of polynomial basis in spectral collocation methods affects the Pauli term count of the resulting system matrix in Variational Quantum Linear Solvers (VQLS). Solving linear systems is fundamental to scientific computing, and VQLS offers a promising near-term quantum approach compatible with Noisy Intermediate-Scale Quantum (NISQ) devices. A key bottleneck in VQLS efficiency is the Pauli term count in the decomposition of the system matrix, which directly determines measurement overhead and circuit complexity. Through a sequence of four numerical experiments on second-order ordinary differential equations, we show that the standard monomial (Case~A) basis saturates all $4^n$ available Pauli strings for an $n$-qubit system, while a basis-change identity reduces this problem to a linear program (LP) over the collocation matrix. The global LP always recovers the identity matrix $M^* = I_N$ as the unique optimum---a single Pauli string regardless of the differential operator, domain, or boundary conditions---but this collapses the quantum problem into a classically trivial state-preparation task. A \emph{monic LP} variant, restricting the basis to lower-triangular coefficient matrices with unit diagonal, provides a principled middle ground: it reduces Hadamard-test overhead by factors of $3$--$7\times$ while preserving a non-trivial quantum system. These results sharply characterize the trade-off between Pauli efficiency and quantum non-triviality in collocation-based quantum linear solvers.
 \end{abstract}
 
 \maketitle
@@ -577,27 +577,256 @@ More specifically, we investigate:
 Understanding this relationship could lead to significant improvements in VQLS implementations for solving differential equations, which have applications across scientific computing, fluid dynamics, quantum chemistry, and machine learning.
 
 \section{Results}
-This section presents the experimental results comparing Pauli term counts and VQLS performance for spectral methods versus traditional finite difference discretizations.
 
-\subsection{Experiment 1}
-1D
-figures
+This section presents four experiments that progressively characterize the Pauli structure of spectral collocation matrices. The central tool is the \emph{basis-change identity}: for any polynomial basis $\{\phi_j\}$ with lower-triangular coefficient matrix $C$ (so $\phi_j(t) = \sum_{k=0}^{j} C_{jk}\,t^k$), the collocation matrix satisfies
+\begin{equation}
+    M = A_{\mathrm{mono}}\,C^{\top},
+\end{equation}
+where $A_{\mathrm{mono}}$ is the collocation matrix for the monomial basis $\phi_j(t)=t^j$. Since $C$ is invertible whenever the basis is non-degenerate, every non-singular collocation matrix $M$ is reachable by an appropriate basis choice, and the Pauli count becomes a property of $M$ alone, independent of how $C$ is parameterized.
 
-\subsection{Experiment 2}
-2D
-figures
+\subsection{Experiment 1: Second-order ODE with pure second derivative}
 
-\subsection{Experiment 3}
-f not polynomial. Approximation error?
-figures
+\paragraph{Setup.}
+We consider the boundary value problem
+\begin{equation}
+    u''(t) = 0, \qquad t \in [0,1], \qquad u(0) = 0,\quad u(1) = 1,
+\end{equation}
+with interior collocation requirements $u''(1/3) = 0$ and $u''(2/3) = 0$. Using a degree-3 trial function $u(t) = \sum_{j=0}^{3} a_j\phi_j(t)$, these four conditions yield a $4 \times 4$ collocation matrix ($N=4$, two qubits).
+
+\paragraph{Case A: Monomial basis.}
+With $\phi_j(t) = t^j$, the system matrix is
+\begin{equation}
+A_{\mathrm{mono}} =
+\begin{bmatrix}
+1 & 0 & 0 & 0 \\
+1 & 1 & 1 & 1 \\
+0 & 0 & 2 & 2 \\
+0 & 0 & 2 & 4
+\end{bmatrix},
+\end{equation}
+which requires all 16 two-qubit Pauli strings.
+
+\paragraph{Case B: Block-diagonal analytical construction.}
+The operator $L[\cdot] = (\cdot)''$ annihilates every polynomial of degree $\leq 1$, so the collocation rows automatically contain zeros in the first two columns for any basis choice. Exploiting this lower-left zero block, we impose three structural conditions on $C$ to also zero the upper-right block:
+\begin{enumerate}
+    \item $C_{20}=0$, $C_{30}=0$, $C_{21}+C_{22}=0$, $C_{31}+C_{32}+C_{33}=0$ (upper-right block = 0),
+    \item $B_1 = B_2$ (equal diagonal blocks, eliminating $Z \otimes \cdot$ Pauli strings),
+    \item $C_{10} = C_{00}$ (repeated first-column entry, eliminating $IY$).
+\end{enumerate}
+With the concrete choice $C_{00}=2$, $C_{11}=2$, $C_{10}=2$, $C_{22}=1$, $C_{21}=-1$, $C_{33}=1$, $C_{32}=0$, $C_{31}=-1$, the collocation matrix becomes
+\begin{equation}
+A =
+\begin{bmatrix}
+2 & 2 & 0 & 0 \\
+2 & 4 & 0 & 0 \\
+0 & 0 & 2 & 2 \\
+0 & 0 & 2 & 4
+\end{bmatrix},
+\end{equation}
+and its (normalized) Pauli decomposition is
+\begin{equation}
+    \frac{A}{\|A\|} \approx 0.4009\,II + 0.2673\,IX - 0.1336\,IZ,
+\end{equation}
+an \textbf{81\% reduction} from 16 to 3 Pauli strings.
+
+\paragraph{Why three is the minimum in the block-diagonal family.}
+With a $2\times 2$ block $B = \bigl[\begin{smallmatrix}a&a\\a&c\end{smallmatrix}\bigr]$, the surviving Pauli coefficients are $\alpha=(a+c)/2$, $\beta=a$, $\gamma=(a-c)/2$. Eliminating $IZ$ would require $a=c$, making $\det(B)=0$; the system would have no unique solution. Hence three Pauli strings is the minimum within the block-diagonal family.
+
+\paragraph{Global LP.}
+By the basis-change identity, minimizing $\sum_P |c_P(M)|$ subject to $\operatorname{Tr}(M)=4$ over all entries of $M$ is a linear program. The HiGHS simplex solver finds the global optimum $M^* = I_4$, with a single Pauli string ($c_{II}=1$, all others zero) --- a \textbf{94\% reduction} from Case~A. The corresponding dual basis is
+\begin{align*}
+    \phi_0(t) &= 1 - t, \\
+    \phi_1(t) &= t, \\
+    \phi_2(t) &= -\tfrac{1}{2}t + t^2 - \tfrac{1}{2}t^3, \\
+    \phi_3(t) &= -\tfrac{1}{2}t^2 + \tfrac{1}{2}t^3,
+\end{align*}
+with $\det C = \tfrac{1}{4} \neq 0$. Solving $I_4\,\mathbf{a}=\mathbf{b}$ gives $\mathbf{a}=\mathbf{b}=[0,1,0,0]^\top$, recovering the exact solution $u(t) = t$.
+
+\begin{center}
+\begin{tabular}{lcc}
+\hline
+Basis & Pauli strings & Reduction \\
+\hline
+Case A (monomial)              & 16/16 & --- \\
+Case B (block-diagonal, monic) &  3/16 & 81\% \\
+LP global optimum ($M^*=I_4$)  &  1/16 & 94\% \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Experiment 2: ODE with lower-order terms}
+
+\paragraph{Setup.}
+We now consider the full second-order problem
+\begin{equation}
+    u''(t) + u'(t) + u(t) = t^2 + 3t + 3, \qquad t \in [-1,1], \qquad u(-1)=0,\quad u(1)=2,
+\end{equation}
+with collocation requirements $L[u](\pm 1/3) = f(\pm 1/3)$. The exact solution is $u(t) = t^2 + t$.
+
+\paragraph{Obstruction to block-diagonal structure.}
+Unlike Experiment~1, the identity term in $L[\cdot] = (\cdot)'' + (\cdot)' + (\cdot)$ gives $L[\phi_0] = C_{00} \neq 0$ and couples the collocation rows to the lower-degree basis functions. Forcing the lower-left $2\times 2$ block to zero requires $C_{00}=0$, $C_{11}=0$, $C_{10}=0$, which degenerates the basis. The block-diagonal strategy from Experiment~1 is \emph{structurally impossible} when the differential operator contains lower-order terms.
+
+\paragraph{Global LP.}
+Despite this obstruction, the LP over all entries of $M$ is unaffected: it finds the same global optimum $M^* = I_4$, with a single Pauli string. The corresponding dual basis has operator-dependent coefficients (e.g.\ $\phi_0(t) \approx 0.4525 - 0.5792t + 0.0475t^2 + 0.0792t^3$), but the quantum representation is identical to Experiment~1. Solving $I_4\,\mathbf{a}=\mathbf{b}$ recovers the exact solution $u(t)=t^2+t$ at all test points.
+
+\paragraph{Key implication.}
+The Pauli count of the collocation matrix is \emph{independent of the differential operator}. For any second-order ODE on any domain with two boundary conditions and two interior collocation points, the globally optimal collocation matrix is $M^*=I_4$, achieved by a suitably chosen operator-dependent dual basis.
+
+\begin{center}
+\begin{tabular}{lcc}
+\hline
+Basis & Pauli strings & Reduction \\
+\hline
+Case A (monomial)             & 16/16 & --- \\
+LP global optimum ($M^*=I_4$) &  1/16 & 94\% \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Experiment 3: Scaling to three qubits}
+
+\paragraph{Setup.}
+We return to the Experiment~2 ODE but scale to $N=8$ (three qubits): two boundary rows and \textbf{six} interior collocation rows at equidistant points $t_k = -1 + k/7$ for $k=1,\ldots,6$, with a degree-7 polynomial trial function.
+
+\paragraph{Case A.}
+The monomial collocation matrix $A_{\mathrm{mono}}$ is $8\times 8$ with $\det A_{\mathrm{mono}} \approx 1003.4$, non-singular. It decomposes into all $4^3 = \mathbf{64}$ three-qubit Pauli strings. Adding more collocation points does not improve the Pauli structure---it only makes it exponentially worse.
+
+\paragraph{Global LP.}
+The LP over all $64$ entries of $M$ (with $\operatorname{Tr}(M)=8$) again finds $M^* = I_8$, with a single Pauli string $c_{III}=1$ --- a \textbf{98.4\% reduction}. The dual basis $\phi_0,\ldots,\phi_7$ is verified numerically at five test points, recovering $u(t)=t^2+t$ to machine precision.
+
+\paragraph{Universal pattern.}
+Across all three experiments the LP always returns $M^*=I_N$:
+
+\begin{center}
+\begin{tabular}{ccccc}
+\hline
+Experiment & $N$ & Qubits & Case A & LP optimum \\
+\hline
+1 & 4 & 2 & 16/16 & 1/16 \\
+2 & 4 & 2 & 16/16 & 1/16 \\
+3 & 8 & 3 & 64/64 & 1/64 \\
+\hline
+\end{tabular}
+\end{center}
+
+\paragraph{Why $M^*=I_N$ is always optimal.}
+The identity matrix $I_N$ concentrates all its Pauli weight into the identity string $I^{\otimes n}$. Formally, $c_{I\cdots I}(I_N)=1$ and $c_P(I_N)=\operatorname{Tr}(P)/N=0$ for all non-identity $P$, since every non-identity Pauli string is traceless. No other matrix achieves fewer Pauli strings subject to $\operatorname{Tr}(M)=N$.
+
+\paragraph{VQLS implication.}
+With $M^*=I_N$, the VQLS system reduces to $I\ket{\psi}=\ket{b}$, which is trivially solved by $\ket{\psi}=\ket{b}$. This is classically trivial and does not provide a quantum advantage. The open question is whether there exists a non-trivial class of operators for which the LP optimum is greater than 1 but still polynomially small in $n$---the regime where VQLS could offer a genuine speedup.
+
+\subsection{Experiment 4: Monic LP as a middle ground}
+
+\paragraph{Motivation.}
+Experiments 1--3 identified two extreme strategies: Case~A (all $4^n$ Pauli strings, no optimization) and the global LP (1 Pauli string, classically trivial). This raises the question: \emph{can we reduce the Pauli count substantially while keeping the quantum system non-trivial?}
+
+\paragraph{Monic LP formulation.}
+We restrict $C$ to be \emph{lower-triangular with unit diagonal} ($C_{jj}=1$, $C_{jk}=0$ for $k>j$, $C_{jk}$ free for $k<j$). This ``monic'' restriction fixes $\phi_j$ to be a degree-$j$ polynomial with leading coefficient~1. Writing $C = I + \Delta$ where $\Delta$ is strictly lower-triangular, the collocation matrix becomes $M = A_{\mathrm{mono}}(I+\Delta)^\top$, which is affine in the $\tfrac{N(N-1)}{2}$ free entries of $\Delta$. The resulting LP is
+\begin{equation}
+    \min_{\mathbf{x},\,\mathbf{t}}\;\sum_{P} t_P
+    \qquad\text{s.t.}\quad J\mathbf{x} + \mathbf{c}^0 \leq \mathbf{t},\;
+    -J\mathbf{x} - \mathbf{c}^0 \leq \mathbf{t},\;
+    \mathbf{t} \geq 0,
+\end{equation}
+where $\mathbf{c}^0$ are the Case~A Pauli coefficients and $J$ is the Jacobian of $c_P$ with respect to $\Delta$. The unit-diagonal constraint ensures $C$ is always invertible, so no normalization constraint ($\operatorname{Tr}(M)=N$) is needed.
+
+\paragraph{Results.}
+Table~\ref{tab:monic} summarizes the Pauli counts and VQLS Hadamard-test overhead across all experiments.
+
+\begin{table}[h]
+\centering
+\caption{Pauli strings and Hadamard tests per VQLS step (HT/step $= L^2(n+1)$) for each experiment and basis choice.}
+\label{tab:monic}
+\begin{tabular}{lccccc}
+\hline
+Experiment & $N$ & $n$ & Case A & Monic LP & Global LP \\
+\hline
+Exp.~1: $u''=0$ on $[0,1]$                    & 4 & 2 & 16/16 & \textbf{6/16}  & 1/16 \\
+Exp.~2: $u''+u'+u=f$ on $[-1,1]$              & 4 & 2 & 16/16 & \textbf{10/16} & 1/16 \\
+Exp.~3: $u''+u'+u=f$ on $[-1,1]$ (3 qubits)  & 8 & 3 & 64/64 & \textbf{36/64} & 1/64 \\
+\hline
+Exp.~1 HT/step & & & 768 & \textbf{108} & 3 \\
+Exp.~2 HT/step & & & 768 & \textbf{300} & 3 \\
+Exp.~3 HT/step & & & 16{,}384 & \textbf{5{,}184} & 4 \\
+\hline
+\end{tabular}
+\end{table}
+
+For Experiment~1, the monic LP returns the basis coefficient matrix
+\begin{equation}
+C^* =
+\begin{bmatrix}
+1 & 0 & 0 & 0 \\
+\tfrac{1}{2} & 1 & 0 & 0 \\
+0 & -1 & 1 & 0 \\
+0 & \tfrac{1}{4} & -\tfrac{5}{4} & 1
+\end{bmatrix},
+\end{equation}
+yielding six nonzero Pauli strings $\{II, IX, IY, ZI, ZY, ZZ\}$.
+
+\paragraph{Why the monic LP cannot recover the 3-Pauli Case~B solution.}
+The analytical block-diagonal strategy in Experiment~1 uses a non-unit diagonal (e.g.\ $C_{00}=C_{11}=2$). Normalizing to a unit diagonal changes the resulting $M$ and produces six nonzero Pauli strings---identical to the monic LP optimum. The 3-Pauli solution therefore lies outside the monic family; it requires non-unit diagonal scaling.
+
+\paragraph{VQLS convergence.}
+VQLS was run with a hardware-efficient $R_Y$-CNOT ansatz for 25 gradient steps (3 trials per configuration, seeds 0--2). For $N=4$ (Experiment~2 ODE), timing was measured on classical simulation. Table~\ref{tab:vqls_timing} reports the LP preprocessing time, VQLS wall-clock time per 25 steps, and final cost.
+
+\begin{table}[h]
+\centering
+\caption{VQLS timing and convergence results for $N=4$ (Experiment~2 ODE, classical simulation, 25 steps, 3 trials). LP times are negligible ($\lesssim 0.13$\,s). VQLS wall-clock time scales with HT/step: the monomial basis requires $237\times$ more simulation time than the full LP.}
+\label{tab:vqls_timing}
+\begin{tabular}{lcccc}
+\hline
+Basis & Paulis & HT/step & VQLS time (s) & Cost @ 25 steps \\
+\hline
+Monomial (Case A) & 16 & 768   & $637 \pm 115$ & $0.185 \pm 0.000$ \\
+Monic LP          & 10 & 300   & $220 \pm 15$  & $0.294 \pm 0.000$ \\
+Full LP           &  1 & 3     & $2.7 \pm 0.7$ & $0.025 \pm 0.000$ \\
+\hline
+\end{tabular}
+\end{table}
+
+The LP preprocessing step (solving for the optimal basis) takes $0.13$\,s for the monic LP and $0.11$\,s for the full LP---negligible compared to VQLS runtime. VQLS wall-clock time scales closely with HT/step: the monic LP is $2.9\times$ faster than Case~A, and the full LP is $237\times$ faster. Despite this, final cost values do not monotonically improve: the cost plateaus at $0.025$--$0.29$ for all methods. This is an \emph{ansatz limitation}: the single-layer $R_Y$ circuit with $n$ parameters cannot express the exact solution state $\ket{b}$ for general $b$. Pauli overhead reduction speeds up each gradient step but does not expand ansatz expressivity.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.75\textwidth]{../plots/scaling_N4.png}
+\caption{VQLS convergence curves for $N=4$ (2 qubits) on the Experiment~2 ODE, comparing monomial (Case~A), monic LP, and full LP bases over 25 gradient steps. The full LP converges fastest due to minimal Hadamard-test overhead; the monic LP is intermediate. All three plateau due to the expressivity limit of the single-layer ansatz.}
+\label{fig:vqls_convergence}
+\end{figure}
+
+\paragraph{Non-triviality.}
+Crucially, the monic LP result $M^* \neq I_N$, so the VQLS system $M^*\ket{\psi}=\ket{b}$ is not classically trivial. Unlike the global LP, the monic LP does not collapse the quantum problem into a state-preparation task.
+
+\paragraph{Structural simplicity.}
+The monic LP is modestly simpler than the global LP: it has $\tfrac{N(N-1)}{2}$ free variables (vs.\ $N^2$ for the global LP) and requires no normalization constraint. Both are $O(N^2)$-variable LPs solved in milliseconds by HiGHS.
 
 \section{Conclusion}
-[Summary of findings regarding Pauli term reduction with spectral methods, implications for VQLS algorithm design, practical recommendations for choosing discretization methods in quantum linear solvers, and future work directions including testing on real quantum hardware]
+
+This paper studied whether the choice of polynomial basis in spectral collocation methods can reduce the Pauli term count of system matrices used in Variational Quantum Linear Solvers (VQLS). Through four experiments on second-order boundary value problems, we established the following findings.
+
+\textbf{The monomial basis is the worst case.} The standard monomial (Case~A) basis saturates all $4^n$ available Pauli strings for any $n$-qubit collocation problem, regardless of the differential operator. This is the natural starting point but also the most expensive for VQLS.
+
+\textbf{A basis-change identity reduces Pauli minimization to a linear program.} Any non-singular collocation matrix is reachable by an appropriate polynomial basis, so minimizing Pauli count over all basis choices is equivalent to a linear program over the collocation matrix $M$.
+
+\textbf{The global LP always finds $M^*=I_N$.} The identity matrix is the unique LP optimum subject to $\operatorname{Tr}(M)=N$, achieving a single Pauli string regardless of the operator, domain, or boundary conditions. This represents a 94--98\% reduction in Pauli terms. However, $M^*=I_N$ collapses the quantum system to $I\ket{\psi}=\ket{b}$, which is classically trivial and offers no quantum advantage.
+
+\textbf{The monic LP provides a principled middle ground.} By restricting the basis coefficient matrix to be lower-triangular with unit diagonal, the monic LP reduces Hadamard-test overhead by factors of $3$--$7\times$ across the three experimental settings while preserving a non-trivial quantum system ($M^* \neq I_N$). It is structurally simpler than the global LP (no normalization constraint) and naturally parameterized in terms of the polynomial basis.
+
+\textbf{Ansatz expressivity is the binding bottleneck at small scales.} In the VQLS experiments, convergence quality is determined by the expressivity of the single-layer $R_Y$ ansatz, not by Pauli overhead. At $N=4,8$, any classical method trivially solves the problem, so no VQLS formulation at this scale offers a quantum advantage. The Pauli reductions identified here become meaningful only at much larger $N$, where quantum linear solvers are hypothesized to offer exponential advantages.
+
+\textbf{Open problems.} The most important open question is whether there exists a non-trivial class of ODEs or boundary conditions for which the LP Pauli optimum is greater than 1 but still polynomially small in the number of qubits. Such a class would be a natural candidate for genuine near-term quantum advantage in differential equation solving. Extensions to higher-dimensional problems (PDEs), non-polynomial right-hand sides, and actual NISQ hardware experiments are left for future work.
 
 \section{Appendix}
-Code
 
-More pictures
+\subsection*{Code}
+All code is publicly available at \url{https://github.com/proxy-pylon/math-499}.
+
+The repository contains the following main modules:
+\begin{itemize}
+    \item \texttt{collocation.py}: builds collocation matrices for general second-order operators on arbitrary domains, implements the global LP (\texttt{minimize\_pauli\_l1}) and monic LP (\texttt{minimize\_pauli\_l1\_monic}) using the HiGHS simplex solver, and counts Pauli strings via trace inner products.
+    \item \texttt{vqls.py}: implements the VQLS algorithm with a hardware-efficient $R_Y$-CNOT ansatz using PennyLane, including the local cost function and gradient-based optimization.
+    \item \texttt{experiment\_scaling.py}: orchestrates the scaling experiments across $N=4,8,16$, collects VQLS timing and convergence data, and generates the convergence plots.
+\end{itemize}
 
 \begin{thebibliography}{99}
 

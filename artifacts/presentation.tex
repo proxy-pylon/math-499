@@ -1,4 +1,4 @@
-\documentclass[aspectratio=169]{beamer}
+\documentclass{beamer}
 
 \usetheme{Madrid}
 \usecolortheme{seahorse}
@@ -10,6 +10,7 @@
 \usepackage{braket}
 \usepackage{booktabs}
 \usepackage{graphicx}
+\usepackage{grffile}
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric,arrows.meta,positioning,fit}
 \usepackage{xcolor}
@@ -28,11 +29,11 @@
 }
 
 %% ----------------------------------------------------------------
-\title[Spectral Methods for VQLS]{Spectral Methods for\\Variational Quantum Linear Solvers}
-\author[A. Akimshe]{Adilet Akimshe\\[4pt]
-  {\small Advisor: Alejandro Javier Castro \quad
+\title[ODE Discretization for VQLS]{Discretizing ODE for Quantum Computers}
+\author[A. Akimshe]{Adilet Akimshe\texorpdfstring{\\[4pt]}{ }
+  {\small Advisor: Alejandro Javier Castro\texorpdfstring{\quad}{ }
          Second Reader: Adilet Otemissov}}
-\institute{Department of Mathematics\\Nazarbayev University}
+\institute[Dept.\ of Math, NU]{Department of Mathematics, Nazarbayev University}
 \date{April 2026}
 %% ----------------------------------------------------------------
 
@@ -50,118 +51,99 @@
 %% ----------------------------------------------------------------
 \section{Motivation}
 
+\begin{frame}[shrink=15]{Quantum Computing: From Labs to Industry}
+
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{center}
+        \includegraphics[width=\linewidth,height=0.50\textheight,keepaspectratio]{{google quantum computer}.jpg}\\[4pt]
+        {\scriptsize Google Willow quantum processor:\\
+        surpassed classical supercomputers on benchmark tasks}
+      \end{center}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{center}
+        \includegraphics[width=\linewidth,height=0.50\textheight,keepaspectratio]{dwave.jpeg}\\[4pt]
+        {\scriptsize D-Wave quantum annealer:\\
+        commercial quantum computing}
+      \end{center}
+    \end{column}
+  \end{columns}
+
+  \vspace{4pt}
+  \begin{block}{Quantum "arms race"}
+    \textbf{Google, IBM, Microsoft, IonQ, D-Wave} — quantum hardware is
+    advancing rapidly. Intermediary quantum algorithms are needed \emph{now} to make use
+    of near-term noisy devices before full fault-tolerance arrives. Whoever gets it first will be filthy rich.
+  \end{block}
+\end{frame}
+
+
+%% ----------------------------------------------------------------
+
 \begin{frame}{Why Should Anyone Care?}
 
-  \begin{columns}
-    \begin{column}{0.55\textwidth}
+  \begin{columns}[T]
+    \begin{column}{0.56\textwidth}
+      \small
       \textbf{The big picture}
-      \begin{itemize}
-        \item Many scientific problems reduce to solving a \emph{linear system}
-              $A\mathbf{x} = \mathbf{b}$ \medskip
-        \item Classical algorithms cost $O(N^3)$ (Gaussian elimination) or
-              $O(N^2)$ (iterative) — expensive for large $N$ \medskip
-        \item \textbf{HHL quantum algorithm}: $O(\log N)$ depth — exponential
-              speedup in $N$
+      \begin{itemize}\setlength\itemsep{2pt}
+        \item Many scientific problems reduce to solving \emph{linear systems}
+              $A\mathbf{x} = \mathbf{b}$
+        \item Classical cost: $O(N^3)$ (Gaussian) or $O(N^2)$ (iterative)
+              — expensive for large $N$
+        \item \textbf{HHL quantum algorithm}: $O(\log N)$ depth —
+              exponential speedup in $N$, but requires tomorrow's fault-tolerant quantum computers
+        \item \textbf{VQLS quantum algorithm}: runs on near-term devices, but has conditions on the matrix $A$ (e.g.\ must be sparse in the Pauli basis)
       \end{itemize}
+
     \end{column}
-    \begin{column}{0.42\textwidth}
-      \begin{block}{NISQ era reality}
-        Current quantum hardware is noisy.
-        \textbf{Variational Quantum Linear Solver (VQLS)} works on
-        near-term devices, but its cost depends critically on how many
-        \emph{Pauli terms} appear in $A$.
-      \end{block}
-      \vspace{4pt}
-      \begin{alertblock}{Central question}
-        Can we \emph{choose} how to discretize a differential equation
-        so that the resulting matrix has \textbf{fewer Pauli terms},
-        making VQLS faster?
-      \end{alertblock}
+    \begin{column}{0.40\textwidth}
+      \begin{center}
+        \includegraphics[width=\linewidth,height=0.62\textheight,keepaspectratio]{Majorana.jpg}\\[2pt]
+        {\scriptsize Microsoft Majorana 1 chip (2025)}
+      \end{center}
     \end{column}
   \end{columns}
 \end{frame}
+
+%% ----------------------------------------------------------------
+\begin{frame}{Simulation vs.\ Real Quantum Hardware}
+
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \textbf{Classical (no quantum) simulation}
+      \begin{itemize}\setlength\itemsep{3pt}
+        \item Runs on CPU/GPU — exact, no noise
+        \item Memory requirement doubles with every qubit added
+        \item[$\Rightarrow$] Feasible only up to ${\sim}50$ qubits
+      \end{itemize}
+
+      \vspace{6pt}
+      \emph{Our experiments use PennyLane's} \texttt{lightning.qubit} \emph{simulator
+      — exact but expensive at $N=16$.}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \textbf{Real quantum hardware}
+      \begin{itemize}\setlength\itemsep{3pt}
+        \item Operates on physical qubits — inherently noisy
+        \item Gate errors, decoherence, measurement noise
+        \item \textbf{NISQ era:} 50--1000 noisy qubits today
+      \end{itemize}
+
+      \vspace{6pt}
+      \begin{block}{Why simulate at all?}
+        Simulation lets us \emph{validate} algorithms cheaply before
+        running on expensive quantum hardware.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
 
 %% ----------------------------------------------------------------
 \section{Background}
 
-\begin{frame}{Pauli Strings — A Quick Reminder}
-
-  \textbf{Single-qubit Paulis:}
-  \[
-    I = \begin{pmatrix}1&0\\0&1\end{pmatrix},\quad
-    X = \begin{pmatrix}0&1\\1&0\end{pmatrix},\quad
-    Y = \begin{pmatrix}0&-i\\i&0\end{pmatrix},\quad
-    Z = \begin{pmatrix}1&0\\0&-1\end{pmatrix}
-  \]
-
-  \textbf{Multi-qubit Pauli strings} are tensor products, e.g.\
-  $X\otimes Z\otimes I$ for 3 qubits.
-
-  \vspace{8pt}
-  \begin{columns}
-    \begin{column}{0.52\textwidth}
-      \textbf{Key facts}
-      \begin{itemize}
-        \item $\{I,X,Y,Z\}^{\otimes n}$ is an orthogonal basis for all
-              $2^n\times 2^n$ matrices
-        \item For $n$ qubits: $4^n$ Pauli strings total
-        \item $n=2$: up to 16 strings;\quad $n=3$: up to 64
-        \item Coefficient: $c_P = \tfrac{1}{2^n}\operatorname{Tr}(A\,P)$
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.44\textwidth}
-      \begin{block}{Why fewer Paulis helps}
-        Each nonzero $c_P$ costs circuit evaluations in VQLS.
-        A sparser Pauli decomposition means fewer measurements,
-        less quantum overhead.
-      \end{block}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-%% ----------------------------------------------------------------
-\begin{frame}{Collocation Discretization — Simple Example}
-
-  \textbf{Problem:} $u'' = 0$, $u(0)=0$, $u(1)=1$. \;
-  \emph{Exact solution: $u(t)=t$.}
-
-  \vspace{4pt}
-  \textbf{Spectral collocation} ($N=4$, monomial basis $\{1,t,t^2,t^3\}$):
-  \begin{enumerate}
-    \item Nodes: boundaries $t=0,1$ and interior nodes $t=\tfrac{1}{3},\tfrac{2}{3}$
-    \item Write $u(t)\approx c_0+c_1 t+c_2 t^2+c_3 t^3$
-    \item Enforce BCs at rows 0--1; enforce $u''=0$ at rows 2--3
-  \end{enumerate}
-
-  \[
-    \underbrace{\begin{pmatrix}
-      1 & 0 & 0 & 0 \\
-      1 & 1 & 1 & 1 \\
-      0 & 0 & 2 & 2 \\
-      0 & 0 & 2 & 4
-    \end{pmatrix}}_{A_{\rm mono}}
-    \begin{pmatrix}c_0\\c_1\\c_2\\c_3\end{pmatrix}
-    = \begin{pmatrix}0\\1\\0\\0\end{pmatrix}
-  \]
-
-  \vspace{2pt}
-  \begin{alertblock}{}
-    $A_{\rm mono}$ uses \textbf{all 16 Pauli strings} ($4^2=16$ for 2 qubits).
-    Can we change basis to get fewer?
-  \end{alertblock}
-\end{frame}
-
-%% ----------------------------------------------------------------
-\begin{frame}{Experiment 1 — Results}
-  \begin{columns}
-    \begin{column}{0.5\textwidth}
-      \includegraphics[page=2,width=\textwidth,trim=20 20 20 20,clip]{experiment1.pdf}
-    \end{column}
-    \begin{column}{0.5\textwidth}
-      \includegraphics[page=3,width=\textwidth,trim=20 20 20 20,clip]{experiment1.pdf}
-    \end{column}
-  \end{columns}
-\end{frame}
 
 %% ----------------------------------------------------------------
 \begin{frame}{Variational Quantum Linear Solver (VQLS)}
@@ -174,7 +156,7 @@
       \textbf{Algorithm loop:}
       \begin{enumerate}
         \item Prepare ansatz $\ket{\psi(\boldsymbol\theta)}=V(\boldsymbol\theta)\ket{0}$
-        \item Evaluate cost $C(\boldsymbol\theta)=1-\dfrac{|\langle b|A|\psi\rangle|^2}
+        \item Evaluate cost $C(\boldsymbol\theta)=1-\tfrac{|\langle b|A|\psi\rangle|^2}
               {\langle\psi|A^\dagger A|\psi\rangle}$
         \item Update $\boldsymbol\theta$ by gradient descent
         \item Repeat until $C\approx 0$
@@ -183,7 +165,7 @@
       \vspace{6pt}
       % Hardware-efficient ansatz diagram (manual)
       \begin{center}
-      \begin{tikzpicture}[scale=0.95,
+      \begin{tikzpicture}[scale=0.85,
         gate/.style={draw,thick,minimum width=1.6em,minimum height=1.4em,fill=white,font=\scriptsize}
       ]
         \draw[thick](0,1)--(5.2,1); \draw[thick](0,0)--(5.2,0);
@@ -206,15 +188,15 @@
     \end{column}
     \begin{column}{0.44\textwidth}
       \begin{block}{Analogy: supervised ML}
-        \renewcommand{\arraystretch}{1.1}
+        {\footnotesize\renewcommand{\arraystretch}{1.05}%
         \begin{tabular}{ll}
           ML & VQLS \\ \hline
           Neural net & Quantum circuit \\
           Weights $\boldsymbol\theta$ & Gate angles \\
           Loss & Cost $C$ \\
           SGD step & Gradient step \\
-          Forward pass & Circuit evaluation
-        \end{tabular}
+          Forward pass & Circuit eval.
+        \end{tabular}}
       \end{block}
 
       \vspace{4pt}
@@ -230,59 +212,142 @@
 \end{frame}
 
 %% ----------------------------------------------------------------
-\begin{frame}{The Pauli Overhead Problem}
+\begin{frame}{Pauli Strings}
 
-  \begin{columns}
-    \begin{column}{0.5\textwidth}
-      Any $2^n \times 2^n$ matrix decomposes as
+  \textbf{Pauli matrices}:
+  \[
+    I = \begin{pmatrix}1&0\\0&1\end{pmatrix},\quad
+    X = \begin{pmatrix}0&1\\1&0\end{pmatrix},\quad
+    Y = \begin{pmatrix}0&-i\\i&0\end{pmatrix},\quad
+    Z = \begin{pmatrix}1&0\\0&-1\end{pmatrix}
+  \]
+
+  \textbf{Pauli strings} — tensor products of these matrices. They form an orthogonal basis for
+  \emph{all} $2^n\times 2^n$ matrices. So any matrix $A$ decomposes as
+  \[
+    A \;=\; \sum_{P} c_P\, P, \qquad c_P = \tfrac{1}{2^n}\operatorname{Tr}(A\,P).
+  \]
+
+\end{frame}
+
+%% ----------------------------------------------------------------
+\begin{frame}[shrink=5]{Pauli Strings — Concrete Example}
+
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \textbf{Matrix} (1 qubit, basis $\{I,X,Y,Z\}$):
       \[
-        A = \sum_{P \in \{I,X,Y,Z\}^{\otimes n}} c_P\, P,
-        \quad c_P = \tfrac{1}{2^n}\operatorname{Tr}(A\,P).
+        A = \begin{pmatrix}3 & 1 \\ 1 & 1\end{pmatrix}
       \]
-      VQLS evaluates $\langle b|A|\psi\rangle$ via \emph{Hadamard tests} —
-      one circuit per Pauli pair.
-
-      \vspace{6pt}
-      \textbf{Cost per gradient step:}
+      \textbf{Coefficients} $c_P = \tfrac{1}{2}\operatorname{Tr}(AP)$:
       \[
-        \#\text{circuits} = L^2(n+1),
+        c_I=2,\quad c_X=1,\quad c_Y=0,\quad c_Z=1.
       \]
-      where $L$ = number of nonzero Pauli strings.
-
-      \vspace{6pt}
-      \begin{itemize}
-        \item $N=4$, all Paulis: $16^2 \cdot 3 = \mathbf{768}$ circuits/step
-        \item $N=8$, all Paulis: $64^2 \cdot 4 = \mathbf{16{,}384}$ circuits/step
-      \end{itemize}
     \end{column}
     \begin{column}{0.46\textwidth}
-      % Manual Hadamard test circuit
-      \begin{center}
-      \begin{tikzpicture}[scale=1.0,
-        gate/.style={draw,thick,minimum width=1.6em,minimum height=1.4em,fill=white,font=\small},
-        meter/.style={draw,thick,minimum width=1.6em,minimum height=1.4em,fill=white,font=\scriptsize}
-      ]
-        \draw[thick] (0,1) -- (4.4,1);
-        \draw[thick] (0,0) -- (4.4,0);
-        \node[left,font=\small] at (0,1) {Anc $|0\rangle$};
-        \node[left,font=\small] at (0,0) {Sys $|\psi\rangle$};
-        \node[gate] at (0.8,1) {$H$};
-        \fill (2.0,1) circle (2.5pt);
-        \draw[thick] (2.0,1) -- (2.0,0);
-        \node[gate] at (2.0,0) {$U$};
-        \node[gate] at (3.2,1) {$H$};
-        \node[meter] at (4.0,1) {$\boxminus$};
-      \end{tikzpicture}
-      \vspace{2pt}
+      \textbf{Result — 3 nonzero Pauli strings:}
+      \[ A \;=\; 2I + X + Z \]
+      One can verify directly: $2I+X+Z = \begin{pmatrix}3&1\\1&1\end{pmatrix}\checkmark$
+      \begin{block}{Why this matters for VQLS}
+        \small One circuit per Pauli term: 3 circuits here.
+        $Y$ dropped out — fewer nonzero $c_P$ means faster VQLS.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
 
-      \small Hadamard test (one per Pauli term)
+%% ----------------------------------------------------------------
+\begin{frame}{Collocation Discretization — Simple Example}
+
+  \textbf{Problem:} $u'' = 0$, $u(0)=0$, $u(1)=1$. \;
+  \emph{Exact solution: $u(t)=t$.}
+
+  \vspace{4pt}
+  \textbf{Spectral collocation} ($N=4$, monomial basis $\{1,t,t^2,t^3\}$):
+  \begin{enumerate}
+    \item Nodes: boundaries $t=0,1$ and interior (equally spaced) points $t=\tfrac{1}{3},\tfrac{2}{3}$
+    \item Write $u(t)\approx c_0+c_1 t+c_2 t^2+c_3 t^3$
+    \item Enforce BCs at rows 0--1; enforce $u''=0$ at rows 2--3
+  \end{enumerate}
+
+  \[
+    \underbrace{\begin{pmatrix}
+      1 & 0 & 0 & 0 \\
+      1 & 1 & 1 & 1 \\
+      0 & 0 & 2 & 2 \\
+      0 & 0 & 2 & 4
+    \end{pmatrix}}_{A_{\rm mono}}
+    \begin{pmatrix}c_0\\c_1\\c_2\\c_3\end{pmatrix}
+    = \begin{pmatrix}0\\1\\0\\0\end{pmatrix}
+  \]
+
+  \vspace{2pt}
+  \begin{alertblock}{}
+    How many Pauli strings does $A_{\rm mono}$ decompose into?
+  \end{alertblock}
+\end{frame}
+
+%% ----------------------------------------------------------------
+\begin{frame}{$A_{\rm mono}$ Decomposes into All 16 Pauli Strings}
+
+  \begin{columns}[T]
+    \begin{column}{0.38\textwidth}
+      Recall $A_{\rm mono}$ for $u''=0$ on $[0,1]$:
+      \[
+        A_{\rm mono} = \begin{pmatrix}
+          1&0&0&0\\1&1&1&1\\0&0&2&2\\0&0&2&4
+        \end{pmatrix}
+      \]
+      Using $c_P = \tfrac{1}{4}\operatorname{Tr}(A_{\rm mono}\,P)$,
+      \emph{every} 2-qubit Pauli string has a nonzero coefficient:
+    \end{column}
+    \begin{column}{0.58\textwidth}
+      \renewcommand{\arraystretch}{1.05}
+      \begin{center}
+      \footnotesize
+      \begin{tabular}{cc|cc|cc|cc}
+        \toprule
+        $P$ & $c_P$ & $P$ & $c_P$ & $P$ & $c_P$ & $P$ & $c_P$ \\
+        \midrule
+        $II$ & $+2$       & $XI$ & $+\tfrac{1}{4}$  & $YI$ & $+\tfrac{1}{4}$  & $ZI$ & $-1$       \\
+        $IX$ & $+\tfrac{5}{4}$  & $XX$ & $+\tfrac{1}{4}$  & $YX$ & $+\tfrac{1}{4}$  & $ZX$ & $-\tfrac{3}{4}$  \\
+        $IY$ & $-\tfrac{1}{4}$  & $XY$ & $-\tfrac{1}{4}$  & $YY$ & $+\tfrac{1}{4}$  & $ZY$ & $-\tfrac{1}{4}$  \\
+        $IZ$ & $-\tfrac{1}{2}$  & $XZ$ & $-\tfrac{1}{4}$  & $YZ$ & $-\tfrac{1}{4}$  & $ZZ$ & $+\tfrac{1}{2}$  \\
+        \bottomrule
+      \end{tabular}
       \end{center}
 
-      \vspace{6pt}
-      \begin{block}{Bottom line}
-        $L \propto N^2$ terms $\Rightarrow$ $L^2 \propto N^4$ circuits per step.\\
-        \textbf{Halving $L$ gives a $4\times$ speedup.}
-      \end{block}
+      \vspace{4pt}
+      \begin{alertblock}{Cost for VQLS}
+        \small $L{=}16$ terms $\Rightarrow$ \textbf{768} circuits/step.\\
+        Fewer $c_P$ $\Rightarrow$ faster VQLS.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ----------------------------------------------------------------
+\begin{frame}{From Pauli Overhead to Basis Change}
+
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \textbf{The cost bottleneck}
+
+      VQLS costs $L^2(n+1)$ circuits/step, where $L$ = nonzero Pauli terms.
+      With the monomial basis, $A_{\rm mono}$ gives $L=16 \Rightarrow \mathbf{768}$ circuits/step.
+
+      \vspace{10pt}
+      \textbf{Key observation}
+
+      The polynomial basis is a \emph{free choice} —
+      it changes $A$ but \textbf{not the solution} $u$. What if we choose a different basis to get a different $A$ with fewer nonzero Pauli terms?
+    \end{column}
+    \begin{column}{0.48\textwidth}
+
+      \vspace{8pt}
+      \begin{alertblock}{Our idea}
+        Better basis $\;\Rightarrow\;$ less Paulis $\;\Rightarrow\;$ fewer circuits $\;\Rightarrow\;$ faster VQLS.
+      \end{alertblock}
     \end{column}
   \end{columns}
 \end{frame}
@@ -290,7 +355,7 @@
 %% ----------------------------------------------------------------
 \section{Main Results}
 
-\begin{frame}{The Basis-Change Identity}
+\begin{frame}[shrink=12]{The Basis-Change Identity}
 
   \begin{block}{Key observation}
     The collocation matrix in \emph{any} polynomial basis $\{\phi_j\}$ is
@@ -316,17 +381,20 @@
       \begin{alertblock}{LP for Pauli minimization}
         \vspace{-4pt}
         \[
-          \min_{C,\,\mathbf{t}}\;\sum_{P} t_P
-          \quad\text{s.t.}\quad |c_P(C)| \le t_P,\;\; \det C \neq 0
+          \begin{aligned}
+            &\min_{C,\,\mathbf{t}}\;\textstyle\sum_{P} t_P \\
+            &\text{s.t.}\; |c_P(C)| \le t_P,\;\det C \neq 0
+          \end{aligned}
         \]
-        Each $c_P$ is linear in $C$, so this is a \textbf{linear program}.
+        \vspace{-4pt}
+        Each $c_P$ is linear in $C$: \textbf{linear program}.
       \end{alertblock}
     \end{column}
   \end{columns}
 \end{frame}
 
 %% ----------------------------------------------------------------
-\begin{frame}{Global LP vs.\ Monic LP}
+\begin{frame}[shrink=12]{Global LP vs.\ Monic LP}
 
   \begin{columns}
     \begin{column}{0.48\textwidth}
@@ -363,15 +431,16 @@
 
   \begin{center}
   \renewcommand{\arraystretch}{1.3}
+  \resizebox{\linewidth}{!}{%
   \begin{tabular}{lcccc}
     \toprule
     Experiment & $N$ & Case A & Monic LP & Global LP \\
     \midrule
     $u''=0$, $[0,1]$                    & 4 & 16 & \textbf{6}  & 1 \\
     $u''+u'+u=f$, $[-1,1]$             & 4 & 16 & \textbf{10} & 1 \\
-    $u''+u'+u=f$, $[-1,1]$ (8-point)   & 8 & 64 & \textbf{36} & 1 \\
+    $u''+u'+u=f$, $[-1,1]$ (8-pt)      & 8 & 64 & \textbf{36} & 1 \\
     \bottomrule
-  \end{tabular}
+  \end{tabular}}
   \end{center}
 
   \vspace{8pt}
@@ -380,6 +449,7 @@
       \textbf{Hadamard tests per gradient step:}
       \renewcommand{\arraystretch}{1.2}
       \begin{center}
+      \resizebox{\linewidth}{!}{\renewcommand{\arraystretch}{1.1}%
       \begin{tabular}{lccc}
         \toprule
         & Case A & Monic LP & Global LP \\
@@ -387,28 +457,30 @@
         $N=4$ & 768 & 108 & 3 \\
         $N=8$ & 16\,384 & 5\,184 & 4 \\
         \bottomrule
-      \end{tabular}
+      \end{tabular}}
       \end{center}
     \end{column}
     \begin{column}{0.48\textwidth}
       \begin{block}{Key takeaway}
-        Monic LP gives a $\mathbf{7\times}$ speedup for $N=4$
-        and $\mathbf{3.2\times}$ for $N=8$ in circuit evaluations,
-        without collapsing the quantum problem to a classical one.
+        \small Monic LP:\\
+        $\mathbf{7\times}$ speedup at $N{=}4$,\\
+        $\mathbf{3.2\times}$ at $N{=}8$.\\
+        Problem stays non-trivial.
       \end{block}
     \end{column}
   \end{columns}
 \end{frame}
 
 %% ----------------------------------------------------------------
-\begin{frame}{Timing Comparison Across System Sizes}
+\begin{frame}[shrink=10]{Timing Comparison Across System Sizes}
 
   Wall-clock time per VQLS gradient step on a CPU simulator
   (PennyLane, \texttt{lightning.qubit}).
 
-  \vspace{6pt}
+  \vspace{4pt}
   \begin{center}
-  \renewcommand{\arraystretch}{1.4}
+  \renewcommand{\arraystretch}{1.2}
+  \resizebox{\linewidth}{!}{%
   \begin{tabular}{lccccccc}
     \toprule
     Size & $n$ & \multicolumn{2}{c}{Case A (Monomial)} &
@@ -422,7 +494,7 @@
     $16\times 16$ & 4 & 256 & $>$3000\,*   & 112 & $\sim$920\,* & 1 & $\sim$0.3 \\
     \bottomrule
     \multicolumn{8}{l}{\footnotesize *Extrapolated from $N^4\log N$ scaling; Case~A at $N=16$ is not feasible on CPU.}
-  \end{tabular}
+  \end{tabular}}
   \end{center}
 
   \vspace{4pt}
@@ -436,6 +508,31 @@
         $N=4$: ${\approx}13\times$ \quad
         $N=8$: ${\approx}3.2\times$ \\
         $N=16$: ${\approx}3.3\times$ (projected)
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%% ----------------------------------------------------------------
+\begin{frame}[shrink=10]{VQLS Cost Convergence — $N=4$ ($u''+u'+u=f$)}
+
+  \begin{columns}[T]
+    \begin{column}{0.62\textwidth}
+      \includegraphics[width=\linewidth]{../plots/scaling_N4.png}
+    \end{column}
+    \begin{column}{0.35\textwidth}
+      \small
+      \textbf{Three bases, 25 gradient steps:}
+      \begin{itemize}\setlength\itemsep{4pt}
+        \item \textcolor{red}{\textbf{Case A}} ($L{=}16$): plateaus at $0.185$ immediately — too slow to escape
+        \item \textcolor{teal}{\textbf{Monic LP}} ($L{=}10$): starts higher, slowly descends, plateaus at $0.294$
+        \item \textcolor{blue}{\textbf{Full LP}} ($L{=}1$): drops to $0.025$ within 5 steps
+      \end{itemize}
+
+      \vspace{6pt}
+      \begin{alertblock}{Key message}
+        \small All three plateau — \emph{ansatz} is the binding limit.
+        But Full LP reaches its plateau $\mathbf{237\times}$ faster.
       \end{alertblock}
     \end{column}
   \end{columns}
@@ -480,40 +577,48 @@
 \section{Conclusion}
 
 \begin{frame}{Conclusion}
+  \small
+  \textbf{What we showed:}
+  \begin{enumerate}\setlength\itemsep{3pt}
+    \item The collocation matrix is freely adjustable via basis change
+          without altering the solution — enabling LP-based Pauli minimization
+    \item \textbf{Global LP} always finds $A^*=I_N$ (1 Pauli), but
+          makes the problem classically trivial
+    \item \textbf{Monic LP} finds a non-trivial $A^*$ with substantially fewer Paulis:
+          $7\times$ speedup at $N=4$, growing with $N$
+    \item Two independent VQLS bottlenecks: circuit overhead (cured by LP)
+          and ansatz depth (separate issue)
+  \end{enumerate}
 
-  \begin{columns}
-    \begin{column}{0.55\textwidth}
-      \textbf{What we showed:}
-      \begin{enumerate}
-        \item The collocation matrix is freely adjustable via basis change
-              without altering the solution — enabling LP-based Pauli minimization
-        \item \textbf{Global LP} always finds $A^*=I_N$ (1 Pauli), but
-              makes the problem classically trivial
-        \item \textbf{Monic LP} finds a non-trivial $A^*\neq I_N$ with substantially
-              fewer Paulis: $7\times$ speedup at $N=4$, growing with $N$
-        \item Two independent bottlenecks govern VQLS: circuit overhead
-              (cured by LP) and ansatz depth (separate issue)
-        \item In 1D, reducing Paulis removes quantum difficulty.
-              \textbf{Multi-D PDEs} are the natural next target
-      \end{enumerate}
-    \end{column}
-    \begin{column}{0.41\textwidth}
-      \begin{block}{Practical recommendation}
-        For VQLS implementations on near-term hardware: apply the
-        \textbf{monic LP preprocessing} before solving.
-        Costs milliseconds of classical LP time; saves orders-of-magnitude
-        in quantum circuit evaluations.
-      \end{block}
+  \vspace{6pt}
+  \begin{block}{Practical recommendation}
+    \small Apply \textbf{monic LP preprocessing} before VQLS on near-term hardware.
+    Costs milliseconds of classical LP time; saves orders-of-magnitude in circuit evaluations.
+  \end{block}
+\end{frame}
 
-      \vspace{6pt}
-      \begin{block}{Future work}
-        \begin{itemize}
-          \item 2D Laplacian: joint basis-change LP over shared $B^\top$
-          \item Chebyshev/Legendre node optimization
-          \item Deeper ansatz to overcome expressibility plateau
-          \item Noise analysis on real NISQ hardware
+%% ----------------------------------------------------------------
+\begin{frame}{Future Work}
+
+  \begin{columns}[T]
+    \begin{column}{0.54\textwidth}
+      \begin{block}{Open problems}
+        \begin{itemize}\setlength\itemsep{4pt}
+          \item \textbf{2D/3D PDEs:} joint basis-change LP over
+                shared $B^\top$ — main open question
+          \item \textbf{Node optimization:} Chebyshev/Legendre
+                collocation nodes may reduce Paulis further
+          \item \textbf{Deeper ansatz} to overcome expressibility plateau
+          \item \textbf{Noise analysis} on real NISQ hardware
         \end{itemize}
       \end{block}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{alertblock}{Key insight}
+        In 1D, reducing Paulis removes quantum difficulty.
+        \textbf{Multi-D PDEs} are the natural next target where
+        quantum advantage may survive.
+      \end{alertblock}
     \end{column}
   \end{columns}
 \end{frame}
@@ -528,7 +633,7 @@
     \vspace{8pt}
     {\small
     Adilet Akimshe \quad|\quad
-    Nazarbayev University, Department of Mathematics\\[4pt]
+    NU, Dept.\ of Mathematics\\[4pt]
     Advisor: Alejandro Javier Castro \quad
     Second Reader: Adilet Otemissov
     }

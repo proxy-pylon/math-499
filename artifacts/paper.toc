@@ -12,12 +12,36 @@
 \contentsline {subsection}{\tocsubsection {}{2.9}{VQLS}}{10}{subsection.2.9}%
 \contentsline {subsection}{\tocsubsection {}{2.10}{ODE type}}{11}{subsection.2.10}%
 \contentsline {subsection}{\tocsubsection {}{2.11}{Spectral methods}}{12}{subsection.2.11}%
-\contentsline {subsection}{\tocsubsection {}{2.12}{Simulation vs Quantum}}{12}{subsection.2.12}%
+\contentsline {subsection}{\tocsubsection {}{2.12}{Simulation vs Quantum}}{13}{subsection.2.12}%
 \contentsline {section}{\tocsection {}{3}{Problem statement}}{13}{section.3}%
-\contentsline {section}{\tocsection {}{4}{Results}}{13}{section.4}%
-\contentsline {subsection}{\tocsubsection {}{4.1}{Experiment 1}}{14}{subsection.4.1}%
-\contentsline {subsection}{\tocsubsection {}{4.2}{Experiment 2}}{14}{subsection.4.2}%
-\contentsline {subsection}{\tocsubsection {}{4.3}{Experiment 3}}{14}{subsection.4.3}%
-\contentsline {section}{\tocsection {}{5}{Conclusion}}{14}{section.5}%
-\contentsline {section}{\tocsection {}{6}{Appendix}}{14}{section.6}%
-\contentsline {section}{\tocsection {}{}{References}}{14}{section*.2}%
+\contentsline {section}{\tocsection {}{4}{Results}}{14}{section.4}%
+\contentsline {subsection}{\tocsubsection {}{4.1}{Experiment 1: Second-order ODE with pure second derivative}}{14}{subsection.4.1}%
+\contentsline {paragraph}{\tocparagraph {}{}{Setup.}}{14}{section*.2}%
+\contentsline {paragraph}{\tocparagraph {}{}{Case A: Monomial basis.}}{14}{section*.3}%
+\contentsline {paragraph}{\tocparagraph {}{}{Case B: Block-diagonal analytical construction.}}{14}{section*.4}%
+\contentsline {paragraph}{\tocparagraph {}{}{Why three is the minimum in the block-diagonal family.}}{15}{section*.5}%
+\contentsline {paragraph}{\tocparagraph {}{}{Global LP.}}{15}{section*.6}%
+\contentsline {subsection}{\tocsubsection {}{4.2}{Experiment 2: ODE with lower-order terms}}{15}{subsection.4.2}%
+\contentsline {paragraph}{\tocparagraph {}{}{Setup.}}{15}{section*.7}%
+\contentsline {paragraph}{\tocparagraph {}{}{Obstruction to block-diagonal structure.}}{15}{section*.8}%
+\contentsline {paragraph}{\tocparagraph {}{}{Global LP.}}{15}{section*.9}%
+\contentsline {paragraph}{\tocparagraph {}{}{Key implication.}}{15}{section*.10}%
+\contentsline {subsection}{\tocsubsection {}{4.3}{Experiment 3: Scaling to three qubits}}{15}{subsection.4.3}%
+\contentsline {paragraph}{\tocparagraph {}{}{Setup.}}{16}{section*.11}%
+\contentsline {paragraph}{\tocparagraph {}{}{Case A.}}{16}{section*.12}%
+\contentsline {paragraph}{\tocparagraph {}{}{Global LP.}}{16}{section*.13}%
+\contentsline {paragraph}{\tocparagraph {}{}{Universal pattern.}}{16}{section*.14}%
+\contentsline {paragraph}{\tocparagraph {}{}{Why $M^*=I_N$ is always optimal.}}{16}{section*.15}%
+\contentsline {paragraph}{\tocparagraph {}{}{VQLS implication.}}{16}{section*.16}%
+\contentsline {subsection}{\tocsubsection {}{4.4}{Experiment 4: Monic LP as a middle ground}}{16}{subsection.4.4}%
+\contentsline {paragraph}{\tocparagraph {}{}{Motivation.}}{16}{section*.17}%
+\contentsline {paragraph}{\tocparagraph {}{}{Monic LP formulation.}}{16}{section*.18}%
+\contentsline {paragraph}{\tocparagraph {}{}{Results.}}{16}{section*.19}%
+\contentsline {paragraph}{\tocparagraph {}{}{Why the monic LP cannot recover the 3-Pauli Case\nonbreakingspace B solution.}}{17}{section*.20}%
+\contentsline {paragraph}{\tocparagraph {}{}{VQLS convergence.}}{17}{section*.21}%
+\contentsline {paragraph}{\tocparagraph {}{}{Non-triviality.}}{17}{section*.22}%
+\contentsline {paragraph}{\tocparagraph {}{}{Structural simplicity.}}{17}{section*.23}%
+\contentsline {section}{\tocsection {}{5}{Conclusion}}{17}{section.5}%
+\contentsline {section}{\tocsection {}{6}{Appendix}}{19}{section.6}%
+\contentsline {subsection}{\tocsubsection {}{}{Code}}{19}{section*.24}%
+\contentsline {section}{\tocsection {}{}{References}}{19}{section*.25}%

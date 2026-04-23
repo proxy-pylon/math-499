@@ -65,7 +65,7 @@ def CA(label, ancilla_idx):
 # VQLS core
 # ---------------------------------------------------------------------------
 
-def run_vqls(M, b_vec, steps=200, eta=0.8, q_delta=0.001, rng_seed=0, verbose=True):
+def run_vqls(M, b_vec, steps=200, eta=0.5, q_delta=0.01, rng_seed=0, verbose=True, n_layers=3):
     """Run VQLS for system M x = b_vec.
 
     M must be normalized: M_norm = M / ||M||_F.
@@ -82,6 +82,7 @@ def run_vqls(M, b_vec, steps=200, eta=0.8, q_delta=0.001, rng_seed=0, verbose=Tr
     n_qubits = int(round(np.log2(M.shape[0])))
     ancilla_idx = n_qubits
     tot_qubits = n_qubits + 1
+    n_params = n_layers * n_qubits
 
     if verbose:
         print(f"  n_qubits={n_qubits}, Pauli terms L={n_terms}, "
@@ -94,8 +95,13 @@ def run_vqls(M, b_vec, steps=200, eta=0.8, q_delta=0.001, rng_seed=0, verbose=Tr
     def variational_block(weights):
         for idx in range(n_qubits):
             qml.Hadamard(wires=idx)
-        for idx, w in enumerate(weights):
-            qml.RY(w, wires=idx)
+        for layer in range(n_layers):
+            for idx in range(n_qubits):
+                qml.RY(weights[layer * n_qubits + idx], wires=idx)
+            for idx in range(n_qubits - 1):
+                qml.CNOT(wires=[idx, idx + 1])
+            if n_qubits > 2:
+                qml.CNOT(wires=[n_qubits - 1, 0])
 
     @qml.qnode(dev_mu, interface="autograd")
     def hadamard_test(weights, l, lp, j, part):
@@ -134,7 +140,7 @@ def run_vqls(M, b_vec, steps=200, eta=0.8, q_delta=0.001, rng_seed=0, verbose=Tr
         return 0.5 - 0.5 * mu_sum / (n_qubits * psi_norm(weights))
 
     pnp.random.seed(rng_seed)
-    w = q_delta * pnp.random.randn(n_qubits, requires_grad=True)
+    w = q_delta * pnp.random.randn(n_params, requires_grad=True)
     opt = qml.GradientDescentOptimizer(eta)
 
     cost_history = []
